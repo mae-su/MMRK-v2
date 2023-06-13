@@ -1,18 +1,26 @@
 import asyncio
 from websocket_server import WebsocketServer
-import zc.lockfile
-#lock = zc.lockfile.LockFile('lock')
-import time
+
 import sys
-import beepy
-from drivers import card
-from drivers import fan
+
+gpio = True
+threadedserver=True
+try: 
+     from drivers import fan
+     from drivers import card
+except ModuleNotFoundError:
+     print("[OS] Pi imports failed. Assuming a Windows platform, GPIO calls will be disabled.")
+     gpio = False
+     threadedserver=False
 
 unlockEvent = asyncio.Event()
 latestWebRQ = ""
 debug=False
-if "debug" in sys.argv:
+
+if "--debug" in sys.argv:
     debug = True
+if "--threadedserver" in sys.argv:
+    threadedserver = True
 servoParkPosition = 4
 servoEjectPosition = 7
 
@@ -75,22 +83,29 @@ if True:
         server.set_fn_client_left(client_left)
         server.set_fn_message_received(message_received)
         print("[Websocket] Server running.")
-        server.run_forever(threaded=True)
+        if gpio and threadedserver:
+             server.run_forever(threaded=True)
+        else: 
+            print("[OS] Running websocket server in the main thread. To run the threaded server regardless of the operating system, run with flag --threadedserver. Please be aware that this may result in the websocket unintentionally running in the background, even after stopping the program.")
+            server.run_forever()
 
     
 async def main():
     try:
         if debug:
             tasks = [asyncio.create_task(servoDebug())]
+        elif not gpio:
+            tasks = [asyncio.create_task(server())]
         else:
-            tasks = [asyncio.create_task(card.setServo(4)), asyncio.create_task(fan.monitor()), asyncio.create_task(server()),asyncio.create_task(unlock(1000))]
+             tasks = [asyncio.create_task(card.setServo(4)), asyncio.create_task(fan.monitor()), asyncio.create_task(server()),asyncio.create_task(unlock(1000))]
         
-        #await asyncio.gather(unlock(),listener(),card.setServo(48),fan.monitor(),startupSound(),server(),)
         done, pending = await asyncio.wait(tasks)
     
-    except:
-        import RPi.GPIO as GPIO
-        GPIO.cleanup()
+    except KeyboardInterrupt:
+        print("Keyboardinterrupted! Remember to kill all python scripts before debugging, as background processes may still be running.")
+        if gpio:
+            import RPi.GPIO as GPIO
+            GPIO.cleanup()
         
 # Create the event loop
 loop = asyncio.get_event_loop()

@@ -1,0 +1,4 @@
+websocket-client
+websocket-server
+rich
+art==5.9

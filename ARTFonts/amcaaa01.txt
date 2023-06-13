@@ -1,0 +1,15 @@
+ .S_SsS_S.    .S_SsS_S.    .S_sSSs     .S    S.   
+.SS~S*S~SS.  .SS~S*S~SS.  .SS~YS%%b   .SS    SS.  
+S%S `Y' S%S  S%S `Y' S%S  S%S   `S%b  S%S    S&S  
+S%S     S%S  S%S     S%S  S%S    S%S  S%S    d*S  
+S%S     S%S  S%S     S%S  S%S    d*S  S&S   .S*S  
+S&S     S&S  S&S     S&S  S&S   .S*S  S&S_sdSSS   
+S&S     S&S  S&S     S&S  S&S_sdSSS   S&S~YSSY%b  
+S&S     S&S  S&S     S&S  S&S~YSY%b   S&S    `S%  
+S*S     S*S  S*S     S*S  S*S   `S%b  S*S     S%  
+S*S     S*S  S*S     S*S  S*S    S%S  S*S     S&  
+S*S     S*S  S*S     S*S  S*S    S&S  S*S     S&  
+SSS     S*S  SSS     S*S  S*S    SSS  S*S     SS  
+        SP           SP   SP          SP          
+        Y            Y    Y           Y           
+                                                  
