@@ -1,0 +1,44 @@
+<html>
+    <body class="welcome">
+      
+      <script src="keypad.js"></script>
+      <link rel="stylesheet" href="keypad.css">
+      <link rel="stylesheet" href="styles.css">
+      <link rel="stylesheet" href="checkboxes.css">
+      <link rel="stylesheet" href="dynamicborder.css">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />      
+      <div id="buttonDecorator"></div>
+      <div id="buttonDecoratorTrail"></div>
+      <div id="signInText" onclick="signInButton()">sign in</div>
+      <div id="welcomer"><span id="text">welcome back.</span><div id="subtext">please sign in.</div></div>
+      <div id="machineList">
+        <!-- <span class="mListItem" id="laserButton" onclick="machineButton('laserButton')">laser</span>
+        <span class="mListItem" id="metalBandsawButton" onclick="machineButton('metalBandsawButton')">bandsaw</span>
+        <span class="mListItem" id="sandingBeltButton" onclick="machineButton('sanding belt')">sanding belt</span>
+        <span class="mListItem" id="solderingButton" onclick="machineButton('soldering')">soldering</span> -->
+        
+      </div>
+      <div id="keypad">
+        <div class="keypadBody">
+          <div class="keySpacer"></div><div class="keySpacer"></div><div class="keySpacer"></div><div class="keySpacer"></div><div class="keySpacer"></div><div class="keySpacer"></div><div class="keySpacer"></div><div class="keySpacer"></div>
+          <div class="keySpacer"></div><div class="textKey" onclick="del()">delete</div>
+          <!-- <div class="textKey" onclick="document.body.classList.add('screen2');document.body.classList.remove('idscreen');">enter</div> -->
+          <div class="break"></div>
+          <div class="key" id="key1"onclick="key('1')">1</div>
+          <div class="key" id="key2"onclick="key('2')">2</div>
+          <div class="key" id="key3"onclick="key('3')">3</div>
+          <div class="key" id="key4"onclick="key('4')">4</div>
+          <div class="key" id="key5"onclick="key('5')">5</div>
+          <div class="key" id="key6"onclick="key('6')">6</div>
+          <div class="key" id="key7"onclick="key('7')">7</div>
+          <div class="key" id="key8"onclick="key('8')">8</div>
+          <div class="key" id="key9"onclick="key('9')">9</div>
+          <div class="key" id="key0"onclick="key('0')">0</div>
+        </div>
+      </div>
+      <div id="ipconfig"class="material-symbols-outlined" onclick="sendData('Ipaddr')">dns</div>
+    </body>
+</html>

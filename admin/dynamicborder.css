@@ -1,0 +1,59 @@
+#buttonDecorator{
+    position:absolute;
+    right:-10%;
+    height:22.5%;
+    bottom:0%;
+    left:2.5%;
+    border-top-left-radius: 2em;
+    border-top: var(--bordercolor) solid 5px;
+    border-left: var(--bordercolor) solid 5px;
+    border-top-width:5px;
+    padding:0;
+    margin:0;
+    transition:left 0.35s, border-color 0.5s, clip-path 0.2s,height 0.5s ease-in-out, opacity 0.5s;
+    transition-delay:0s,0s,0s,0.5s, 0.5s;
+    
+    transform:translateX(0);
+    z-index:4;
+    
+}
+.idscreen #buttonDecorator{
+    clip-path:polygon(0 100%, 0 100%, 100% 100%, 0% 100%);
+}
+.screen2 #buttonDecorator{
+    left:-10%;
+    /* left:80%; */
+    height:90%;
+    opacity:0;
+}
+
+.welcome #buttonDecorator{
+    left:2.5%;
+}
+
+#buttonDecoratorTrail{
+    position:absolute;
+    z-index:1;
+    right:-10%;
+    height:22.5%;
+    bottom:0%;
+    left:2.5%;
+    border-top-left-radius: 2em;
+    border-top: #1e2629 solid 5px;
+    border-left: #1e2629 solid 5px;
+    padding:0;
+    margin:0;
+    opacity:0.5;
+    transition:left 0.35s, clip-path 0.2s;
+    pointer-events:none;
+
+}
+
+.screen2 #buttonDecoratorTrail{
+    opacity:0;
+    /* left:80%; */
+}
+
+.welcome #buttonDecoratorTrail{
+    left:2.5%
+}

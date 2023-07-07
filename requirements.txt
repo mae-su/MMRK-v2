@@ -1,4 +1,7 @@
 websocket-client
 websocket-server
+Flask
+websockets
 rich
 art==5.9
+uploadserver

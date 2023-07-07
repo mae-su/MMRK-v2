@@ -1,0 +1,81 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300);
+
+:root{
+    --bordercolor:#f4e136
+}
+
+body{
+    font-family:'Open Sans';
+    height:100vh;
+    width:100vw;
+    padding:0;
+    margin:0;
+    overflow:hidden;
+    background-color: rgb(14,14,14);
+    user-select: none;
+    /* overscroll-behavior-x: none;
+    overscroll-behavior-y:none; */
+    clip: auto;
+    position: absolute;
+    overflow: hidden;
+    perspective: -800px;
+}
+.home body{
+    
+}
+#signInText{
+    position:absolute;
+    z-index: 4;
+    height:calc(22.5% + 5px);
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    bottom:0%;
+    color:white;
+    left:2.5%;
+    right:0%;
+    text-align: right;
+    font-family: 'Open Sans';
+    transition:opacity 0.5s ease;
+    
+    font-size:2.125em;
+    font-weight:400;
+    opacity:0;
+    text-align: center;
+    pointer-events: none;
+}
+
+#signInText:hover{
+  cursor:pointer;
+}
+
+.welcome #signInText{
+    opacity:1;
+    
+    pointer-events: all;
+}
+
+
+#welcomer{
+    transition:opacity 0.5s;
+    position:absolute;
+    top:35%;
+    color:white;
+    right:1.5%;
+    text-align: right;
+}
+
+.screen2 #welcomer{
+  
+  opacity:0;
+}
+#text{
+    font-size:2.125em;
+    font-weight:100;
+}
+#subtext{
+    font-size:1em;
+    /* transition: font-size 0.5s, opacity 0.5s; */
+    opacity:1;
+}
+

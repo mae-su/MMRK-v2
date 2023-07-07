@@ -1,0 +1,106 @@
+@font-face {
+  font-family: "Anurati";
+  src: url("./Anurati-Regular.otf");
+}
+:root{
+  
+  --circleSize:50vh;
+}
+
+.irisContainer > div{  
+  --circleThickness: -1vh;
+  transition:all 0.6s ease-in-out;
+  
+  transition-delay:0.3s;
+  position:absolute ;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  
+  border-radius:50%;
+  aspect-ratio: 1 / 1;
+  
+  
+}
+
+.home .irisContainer > div{
+  --circleThickness:1%;
+  --circleSize:40vh;
+  opacity:1;
+}
+
+.closed .irisContainer > div{
+  --circleThickness:1%;
+  --circleSize:35vh;
+
+}
+
+.userModal .irisContainer > div{
+  --circleSize:50vh;
+
+}
+
+.iris{
+  opacity:0;
+  width:var(--circleSize);
+  z-index:6;
+  background-color:#f4e136;
+  box-shadow:
+    0 0 80px #000000FF,
+}
+
+.home .iris{
+  opacity:1;
+  box-shadow:
+    0 0 50px #ffffff,
+    -10px 0 80px #ff00ff,
+    10px 0 80px #00ffff;
+}
+.closed .iris{
+  background-color:red;
+  box-shadow:
+    0 0 25px #ffffff,
+    -10px 0 60px #ff0000,
+    10px 0 60px #ff0000;
+}
+#pupil{
+  background-color:rgb(14,14,14);
+  clip-path:circle();
+  width:calc(var(--circleSize) - (var(--circleThickness) / 2));
+  z-index:7;
+}
+
+#splash{
+  opacity:0;
+  font-family:'Anurati';
+  font-size:13.5vw;
+  mix-blend-mode:overlay;
+  padding:0;
+  margin:0;
+  color:rgb(14,14,14);
+  position:fixed;
+  top:50vh;
+  left:50vw;
+  transform:translate(-50%,-50%);
+  z-index:8;
+  
+  white-space: nowrap;
+}
+.home #splash{
+  -webkit-animation: slide-in-bck-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+	        animation: slide-in-bck-center 0.6s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+          animation-delay: 0.4s;
+}
+@keyframes slide-in-bck-center {
+  0% {
+    transform: translateZ(-700px) translateY(-50%) translateX(-50%);
+    font-size: 20vw;
+    opacity: 0;
+  }
+
+  100% {
+    font-size: 13.5vw;
+    transform: translateZ(0) translateY(-50%) translateX(-50%);
+    opacity: 1
+  }
+}

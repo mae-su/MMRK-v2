@@ -1,0 +1,99 @@
+:root{
+    --bordercolor:#f4e136
+}
+
+body{
+    font-family:'Open Sans';
+    height:100vh;
+    width:100vw;
+    cursor:crosshair;
+    padding:0;
+    margin:0;
+    overflow:hidden;
+    background-color: black;
+    background:url(./gallery/cnc.png) no-repeat center;
+    background-size: cover;
+    /* backdrop-filter: contrast(120%) brightness(60%); */
+    user-select: none;
+    /* overscroll-behavior-x: none;
+    overscroll-behavior-y:none; */
+    clip: auto;
+    position: absolute;
+    overflow: hidden;
+
+
+}
+
+#signInText{
+    position:absolute;
+    z-index: 4;
+    height:calc(22.5% + 5px);
+    display:flex;
+    align-items: center;
+    justify-content: center;
+    bottom:0%;
+    color:white;
+    left:2.5%;
+    right:0%;
+    text-align: right;
+    font-family: 'Roboto';
+    font-size:2.125em;
+    font-weight:400;
+    opacity:0;
+    text-align: center;
+    pointer-events: none;
+}
+.welcome #signInText{
+    opacity:1;
+    pointer-events: all;
+}
+
+.screen2 #signInText{
+  left:80%;
+  opacity:1;
+  pointer-events: all;
+}
+
+#welcomer{
+    position:absolute;
+    top:35%;
+    color:white;
+    right:1.5%;
+    text-align: right;
+}
+#text{
+    font-size:2.125em;
+    font-weight:100;
+}
+#subtext{
+    font-size:1em;
+    /* transition: font-size 0.5s, opacity 0.5s; */
+    opacity:1;
+}
+
+.IDscreen #subtext{
+    /* font-size:1.75em; */
+}
+.screen2 #subtext{
+    opacity:1;
+}
+
+#ipconfig{
+    position:absolute;
+    top:2%;
+    right:1%;
+    color:white;
+}
+.material-symbols-outlined {
+  font-variation-settings:
+  'FILL' 1,
+  'wght' 500,
+  'GRAD' -25,
+  'opsz' 48
+}
+
+#machineList{
+  font-size:2em;
+  color:white;
+}
+

@@ -1,0 +1,95 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:300);
+
+#keypad{
+    justify-content:center;
+    align-items:flex-end;
+    margin:0;
+    padding:0;
+    width: 100vw;
+    height: 100vw;
+    transition: opacity 0.5s linear;
+    opacity:1;
+}
+
+.screen2 #keypad{
+    opacity:0;
+}
+
+.break {
+    flex-basis: 100%;
+    height: 0;
+  }
+
+.keypadBody {
+    position:absolute;
+    z-index: 5;
+    bottom:5%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* background-color: rgb(211, 211, 211); */
+    align-self: center;
+    border-radius: 1em;
+    /* margin-left:2.5%; */
+    font-family: 'Open Sans';
+    width: 100%;
+    transition: opacity 0.25s linear;
+    opacity:0;
+    pointer-events:none;
+}
+
+.idscreen .keypadBody{
+    opacity:1;
+    pointer-events:all;
+}
+
+#actionBody{
+    bottom:15%;
+    justify-content: right;
+}
+
+.keySpacer{
+    width: 2.75em;
+    height: 2.75em;
+    display: flex;
+    margin: 0.125em;
+    font-size: 1.5em;
+    pointer-events: none;
+}
+
+.textKey{
+    width: 2.75em;
+    height: 2.75em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.125em;
+    font-size: 1.5em;
+    color:white;
+    font-weight:100;
+}
+.key {
+    justify-self: center;
+    width: 2.75em;
+    height: 2.75em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0.125em;
+    font-size: 1.5em;
+    font-weight:thin;
+    background-color: #274f63;
+    border-radius: 0.6em;
+    /* transition:opacity 0.25s; */
+    color:white;
+    transition:backround-color 0.2s;
+}
+
+#enter{
+    background-color: #304ffe
+}
+
+/* material ui */
+#backspace{
+    background-color: #f44336;
+}
