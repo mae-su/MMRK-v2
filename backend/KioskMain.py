@@ -407,7 +407,7 @@ def checkID(ID):
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = True
+    debug = False
 
     if debug or "--debug" in sys.argv:
         import os
