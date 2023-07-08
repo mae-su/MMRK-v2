@@ -6,6 +6,8 @@ var closed = false
 var selected = []
 var displaytimer = 0
 document.documentElement.style.setProperty("--bordercolor", "hsla(54, 0%, 60%,80%)");
+const teleporturl = window.location.href.split("/ui")[0] + "/teleport";
+
 setInterval(function() {
   sendData("Ping,");
 }, 500);
@@ -131,7 +133,7 @@ function signedIn(){
 function sendData(data) {
   data = "%" + data //adds the necessary modifier to all commands before sending
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'http://192.168.0.30:8080/teleport', true); // Modify the URL as per your server configuration
+    xhr.open('POST', teleporturl, true); // Modify the URL as per your server configuration
     
     // Set the appropriate headers if you need to send data other than plain text
     // xhr.setRequestHeader('Content-Type', 'application/json');
