@@ -26,7 +26,7 @@ unboldul = unbold + unul
 end = "\033[0m"
 latestSignIns = []
 
-dir = "/opt/MMRK-v2/"  # This is where files will be stored on the pi.
+dir = "./data/"  # This is where files will be stored on the pi.
 firstboot = False
 kioskIP = "127.0.0.1"
 clisplash = (
