@@ -389,7 +389,7 @@ if __name__ == "__main__":
     if debug or "--debug" in sys.argv:
         import os
 
-        dir = "./kioskDebugStorage/"
+        dir = "./data/"
         # os.system("wt.exe telnet 127.0.0.1 8000")
         kioskIP = "192.168.86.80"
 
