@@ -2,7 +2,8 @@ import json
 
 def createJSON(path):
     with open(path, 'w') as f:
-        print("The json file is created")
+        print("Created JSON at " + path)
+    setJson(path,{})
     return path
 
 def getJson(filePath: str):

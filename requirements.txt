@@ -5,3 +5,4 @@ websockets
 rich
 art==5.9
 uploadserver
+selenium

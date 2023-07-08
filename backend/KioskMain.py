@@ -9,6 +9,7 @@ from twisted.web import server, resource, static
 from twisted.protocols.basic import LineReceiver
 import threading
 import socket
+from selenium import webdriver
 import datetime
 
 # \033 is the "escape code." when printed to a terminal, the terminal processes the characters following it as commands for formatting, cursor control, and other terminal controls.
@@ -340,30 +341,52 @@ class Simple(resource.Resource):
           
 
 def main():
+    
+    try:
+        if not os.path.exists(dir):
+            install(print)
+    except:
+        install(print)
+    print("[MMRKV2] Kiosk is starting...")
     f = Factory()
     f.protocol = Echo
     site = server.Site(Simple())
     endpoint = endpoints.TCP4ServerEndpoint(reactor, 8080)
     endpoint.listen(site)
     reactor.listenTCP(8000, f)
+    print("[MMRKV2] Kiosk UI is running at: http://localhost:8080/ui/")
+    print("[MMRKV2] Admin UI is running at: http://localhost:8080/admin/")
+    
     reactor.run()
 
 
 def install(out):
-    out(("\n Installing directory at: " + dir + "\n").encode())
+    def selfout(s):
+        out("[Installer] " + s)
+    selfout("Installing directory at: " + dir)
     try:
         os.mkdir(dir)
     except Exception as e:
-        out(str("Failed to create storage directory. \n" + str(e)).encode())
+        selfout("Failed to create storage directory. \n" + str(e))
 
     try:
-        out(str("Creating JSONs: " + dir + "\n").encode())
+        selfout("Creating JSONs: ")
         jsonHelper.createJSON(dir + "log.json")
         jsonHelper.createJSON(dir + "UIDs.json")
+        jsonHelper.createJSON(dir + "secrets.json")
+        selfout("Done.")
+        selfout("Writing format to secrets.json with defaults:")
+        j = jsonHelper.getJson(dir + "secrets.json")
+        j["entryDenied"] = str(False)
+        selfout("'entryDenied' : 'False'  |  Kiosk is currently accepting entry.")
+        j["authcode"] = "00000"
+        selfout("'authcode':'00000'  |  Admin PIN is currently 00000")
+        jsonHelper.setJson(dir + "secrets.json",j)
+        
 
     except Exception as e:
-        out(str("Failed to create JSONs. \n" + str(e)).encode())
-    out(str("Success! Please set a password with /adminpass <password>").encode())
+        selfout("Failed to create JSONs. \n" + str(e))
+    selfout("Success! Please set a five digit admin PIN in secrets.json.")
 
 def log(ID, machines):
     logdata = jsonHelper.getJson(dir + "log.json")
@@ -393,8 +416,5 @@ if __name__ == "__main__":
         # os.system("wt.exe telnet 127.0.0.1 8000")
         kioskIP = "192.168.86.80"
 
-    if isinstalled(dir):
-        pass
-    else:
-        firstboot = True
+    
     main()
