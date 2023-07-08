@@ -130,6 +130,43 @@ function signedIn(){
   }, 1000);
 }
 
+function parsejson(){
+  fetch('data.json')
+  .then(response => response.json())
+  .then(data => {
+    // Get the 'entries' div element
+    const entriesDiv = document.getElementById('entries');
+
+    // Iterate over each entry in the JSON data
+    for (const timestamp in data) {
+      const entry = data[timestamp];
+
+      // Create an HTML element to display the entry
+      const entryElement = document.createElement('div');
+      entryElement.className = 'entry';
+
+      // Create a heading element for the timestamp
+      const timestampHeading = document.createElement('h2');
+      timestampHeading.textContent = new Date(parseFloat(timestamp) * 1000).toLocaleString();
+      entryElement.appendChild(timestampHeading);
+
+      // Create a paragraph element for the ID
+      const idParagraph = document.createElement('p');
+      idParagraph.textContent = 'ID: ' + entry.ID;
+      entryElement.appendChild(idParagraph);
+
+      // Create a paragraph element for the machines
+      const machinesParagraph = document.createElement('p');
+      machinesParagraph.textContent = 'Machines: ' + entry.machines.join(', ');
+      entryElement.appendChild(machinesParagraph);
+
+      // Append the entry element to the 'entries' div
+      entriesDiv.appendChild(entryElement);
+    }
+  })
+  .catch(error => console.error(error));
+}
+
 function sendData(data) {
   data = "%" + data //adds the necessary modifier to all commands before sending
     var xhr = new XMLHttpRequest();

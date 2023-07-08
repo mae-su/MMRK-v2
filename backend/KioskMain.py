@@ -250,6 +250,8 @@ class Simple(resource.Resource):
           file_path = b"./ui/" + str(request.path.decode()).replace("/ui/","").encode()
           return static.File(file_path).getContent()
             
+        if request.path == b"/log.json":
+            file_path = b"./data/log.json"
         if request.path == b"/admin/":
             file_path = b"./admin/index.html"
             return static.File(file_path).getContent()
@@ -407,7 +409,7 @@ def checkID(ID):
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = False
+    debug = True
 
     if debug or "--debug" in sys.argv:
         import os
