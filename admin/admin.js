@@ -2,11 +2,18 @@ var ID = ""
 var signInUnlock = false
 var entryDenied = false
 var errorState = false
+var logScreen = false
 var closed = false
 var selected = []
 var displaytimer = 0
 document.documentElement.style.setProperty("--bordercolor", "hsla(54, 0%, 60%,80%)");
-const teleporturl = window.location.href.split("/ui")[0] + "/teleport";
+var teleporturl = ""
+if(window.location.href.includes(":5500")){
+  teleporturl = window.location.href.split(":5500")[0] + ":8080/teleport"; //automatically reconstructs the server URL if the admin url is through a Five Server environment
+} else{
+
+  teleporturl = window.location.href.split("/admin")[0] + "/teleport";
+}
 
 setInterval(function() {
   sendData("Ping,");
@@ -18,11 +25,21 @@ document.addEventListener("keypress", function onPress(event) {
   if (!signInUnlock) {
     if (!isNaN(event.key)){
       key(parseInt(event.key)); 
-    } else{
-      del()
     }
   }
 });
+
+document.addEventListener('keydown', function(event) {
+  
+  if (event.key === 'Escape' && document.documentElement.classList != "_default _defaultInteractable") {
+    if(logScreen){
+      logScreen = false;
+      document.body.classList.remove('logScreen');
+      document.body.classList.add('home');
+    }
+  }
+});
+
 function borderStep(step){
   if (step==-1){
     document.getElementById("buttonDecorator").style.clipPath = "polygon(0 100%, 0 100%, 100% 100%, 0% 100%)";
@@ -101,12 +118,28 @@ function lockdownbutton(){
   sendData("Ping,");
 }
 
+function manualunlockbutton(){
+  sendData("Manual;");
+  document.documentElement.style.setProperty("--shadowmult", "0.1");
+  document.getElementById("manualUnlock").style.opacity = "0.5";
+  setTimeout(function () {
+    // document.documentElement.style.setProperty("--shadowmult", "1");
+    setTimeout(function () {
+      document.documentElement.style.setProperty("--shadowmult", "1");
+      
+    }, 150);
+    document.getElementById("manualUnlock").style.opacity = "1";
+  }, 400);
+}
+
 function resetScreen(){
   document.documentElement.style.setProperty("--bordercolor", "hsl(54, 0%, 65%)");
   document.body.classList.remove('idscreen');
   document.body.classList.remove('screen2');
   document.body.classList.remove("closed");
+  document.body.classList.remove("home");
   document.body.classList.add('welcome');
+  document.getElementById("latest").style.opacity = 0;
   document.getElementById("signInText").innerText = "sign in";
   document.getElementById("text").innerText = "welcome back."
   document.getElementById("subtext").innerText = "please sign in.";
@@ -135,15 +168,15 @@ function parsejson(){
   .then(response => response.json())
   .then(data => {
     // Get the 'entries' div element
-    const entriesDiv = document.getElementById('entries');
-
+    const entriesDiv = document.getElementById('log');
+    var i = 0
     // Iterate over each entry in the JSON data
     for (const timestamp in data) {
       const entry = data[timestamp];
-
+      i = i + 1
       // Create an HTML element to display the entry
       const entryElement = document.createElement('div');
-      entryElement.className = 'entry';
+      entryElement.className = 'logEntry';
 
       // Create a heading element for the timestamp
       const timestampHeading = document.createElement('h2');
@@ -163,8 +196,14 @@ function parsejson(){
       // Append the entry element to the 'entries' div
       entriesDiv.appendChild(entryElement);
     }
-  })
+  console.log("Rendered " + String(i) + " entries.")
+  document.body.classList.remove('home');
+  document.body.classList.add('logScreen');
+  logScreen = true;
+})
   .catch(error => console.error(error));
+  
+  
 }
 
 function sendData(data) {
@@ -204,10 +243,10 @@ function sendData(data) {
               document.getElementById("latest").style.opacity = 0;
               setTimeout(function () {
                 document.getElementById("latest").innerText = latest;
-              }, 500);
+              }, 400);
               setTimeout(function () {
                 document.getElementById("latest").style.opacity = 0.85;
-              }, 1000);
+              }, 800);
             } 
             else if(resp.includes("Latest")){
               if(displaytimer == 0){
@@ -239,8 +278,7 @@ function sendData(data) {
 
             if(resp.includes("entryDenied")){
               if(errorState){
-                resetScreen();
-                errorState = false;
+                location.reload()
               }
               if(!entryDenied){
                 entryDenied = true;
@@ -252,8 +290,7 @@ function sendData(data) {
             }
             if(resp.includes("entryAllowed")){
               if(errorState){
-                resetScreen();
-                errorState = false;
+                location.reload()
               }
               if(entryDenied){
                 

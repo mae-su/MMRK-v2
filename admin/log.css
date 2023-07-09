@@ -1,0 +1,35 @@
+#log{
+  /* position: absolute; */
+  transition:opacity 0.5s;    
+  opacity:0;
+  margin-top:15vh;
+  position:static;
+  height:100vh;
+  overflow:auto;
+  overflow-y: auto;
+  font-size: 2em;
+}
+
+.logEntry{
+  color:white;
+  width:100vw;
+}
+
+.logScreen #log{
+  opacity:1;
+  transition-delay:0.5s;
+}
+
+#searchBar{
+  position:absolute;
+  top:2.5vh;
+  font-size:7vh;
+  color:#eeeeee;
+  left:10vh;
+  right:10vh;
+  bottom:87.5vh;
+  border-top-left-radius: 2.5vh;
+  border:solid 4px #f4e136;
+  border-bottom-right-radius: 2.5vh;
+  background-color:#0c0c0c;
+}

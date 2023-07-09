@@ -311,7 +311,7 @@ class Simple(resource.Resource):
         else:
             return "OK"  # Return a response to the client
     def adminPostHandler(self, content):
-  
+
         if "Ping" in content:
           if entry():
             return str("entryDenied;")
@@ -332,7 +332,16 @@ class Simple(resource.Resource):
             return "Latest;" + str(resp)
           else:
             return "Latest"
-            
+        if "Manual;" in content:
+            try:
+                if debug:
+                    print("[DEBUG] Card swipe called.")
+                    return "Latest;Manually unlocked."
+                else:
+                    cardswipe.main(IP=kioskIP)
+                    return "Latest;Manually unlocked."
+            except:
+                return "Latest;A hardware agent error occured."
         if "ToggleEntry;" in content:
           if entry():
             entry(False)

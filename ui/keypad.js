@@ -3,7 +3,13 @@ var signInUnlock = false
 var entryDenied = false
 var errorState = false
 var selected = []
-const teleporturl = window.location.href.split("/ui")[0] + "/teleport";
+var teleporturl = ""
+if(window.location.href.includes(":5500")){
+  teleporturl = window.location.href.split(":5500")[0] + ":8080/teleport"; //automatically reconstructs the server URL if the admin url is through a Five Server environment
+} else{
+
+  teleporturl = window.location.href.split("/ui")[0] + "/teleport";
+}
 document.documentElement.style.setProperty("--bordercolor", "hsla(54, 0%, 60%,80%)");
 setInterval(function() {
   sendData("Ping,");
