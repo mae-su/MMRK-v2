@@ -3,7 +3,7 @@ var signInUnlock = false
 var entryDenied = false
 var errorState = false
 var logScreen = false
-var managerScreen = false
+var managerOpen = false
 var closed = false
 var selected = []
 var displaytimer = 0
@@ -44,7 +44,6 @@ if(window.location.href.includes(":5500")){
 } else{
   teleporturl = window.location.href.split("/admin")[0] + "/teleport";
 }
-
 setInterval(function() {
   sendData("Ping,");
 }, 500);
@@ -194,6 +193,13 @@ function signedIn(){
   }, 1000);
 }
 
+function userManager(){
+  managerOpen = true
+  sendData("UIDManager;");
+  addBodyClass('managerOpen')
+  window.open(teleporturl.split(":8080")[0] + ":4196/upload/", '_blank');
+}
+
 function parsejson(){
   logScreen = true;
   fetch('data.json')
@@ -239,8 +245,6 @@ function parsejson(){
   
 })
   .catch(error => console.error(error));
-  
-  
 }
 
 function sendData(data) {

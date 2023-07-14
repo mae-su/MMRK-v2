@@ -8,11 +8,10 @@ from twisted.internet.protocol import Factory, Protocol
 from twisted.web import server, resource, static
 from twisted.protocols.basic import LineReceiver
 import threading
-import socket
 from selenium import webdriver
-import string
 from datetime import datetime
 from collections import OrderedDict
+import subprocess
 # os.chdir('../')
 # \033 is the "escape code." when printed to a terminal, the terminal processes the characters following it as commands for formatting, cursor control, and other terminal controls.
 redwhite = "\033[25;33;49m"
@@ -282,6 +281,7 @@ class Simple(resource.Resource):
             return str("entryDenied")
           else:
             return str("entryAllowed")
+             
         ##process web POSTS here
         if "SignInReq;" in content:
           try:
@@ -305,7 +305,7 @@ class Simple(resource.Resource):
               cardswipe.main(IP=kioskIP)
               return "Log Success;"
         if content == "Ipaddr":
-            return str("Ipaddr;" + socket.gethostbyname(socket.gethostname()))  # send IP address
+            return str("Ipaddr;" + subprocess.getoutput("hostname -I"))  # send IP address
         else:
             return "OK"  # Return a response to the client
     def adminPostHandler(self, content):
@@ -381,24 +381,10 @@ class Simple(resource.Resource):
             jsonHelper.setJson(dir + "../admin/data.json", logdata)
             print("[MMRKV2] JSON dumped in " + str(execTime.total_seconds()*1000) + " milliseconds.")
             return "DumpedJSON;"
-        if "SetID;" in content:
-            UIDdata = jsonHelper.getJson(dir + "UIDs.json")
-            if ";del;" in content:
-                number = content.split(";del;")[1]
-                del UIDdata[number]
-            elif ";update;" in content: #SetID;update;12345,mae,sub,machine1&machine2
-                args = content.split(";update;")[1].split(",")
-                UIDdata[args[0]] = {
-                "firstname":args[1],
-                "lastname":args[2],
-                "machines":args[3].split("&")
-				}
+        if "UIDManager;" in content:
+            uploadserver = subprocess.Popen("python3 -m uploadserver 4196",shell=True,stdin=None, stdout=None, stderr=None, close_fds=True)
+            return "Latest;User manager will stop in 60s."
             
-            jsonHelper.setJson(dir + "UIDs.json",UIDdata)
-            print("[MMRKV2] JSON dumped in " + str(execTime.total_seconds()*1000) + " milliseconds. (Query: '" + query + "')")
-            return "DumpedJSON;"
-                
-          
 def main():
     
     try:
@@ -469,7 +455,7 @@ def checkID(ID):
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = True
+    debug = False
 
     if debug or "--debug" in sys.argv:
         import os

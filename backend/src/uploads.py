@@ -21,4 +21,4 @@ h1 {
 }
 </style>'''
 }
-uploadserver.serve_forever()
+uploadserver

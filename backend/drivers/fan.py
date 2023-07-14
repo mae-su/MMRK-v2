@@ -1,12 +1,12 @@
 import asyncio
 import RPi.GPIO as GPIO
-tempSteps = [30, 70]  # [°C]
+tempSteps = [30, 60]  # [°C]
 speedSteps = [0, 100]  # [%]
 
 # Fan speed will change only of the difference of temperature is higher than hysteresis
-hyst = 1
+hyst = 0.25
 FAN_PIN = 18
-WAIT_TIME = 1
+WAIT_TIME = 0.5
 FAN_MIN =  20 # [%] Fan minimum speed.
 PWM_FREQ = 25
 
@@ -29,7 +29,7 @@ async def monitor():
         cpuTempFile = open("/sys/class/thermal/thermal_zone0/temp", "r")
         cpuTemp = float(cpuTempFile.read()) / 1000
         cpuTempFile.close()
-        #print("[Cooling] CPU Temp: " + str(cpuTemp))
+        # print("[Cooling] CPU Temp: " + str(cpuTemp))
         # Calculate desired fan speed
         if abs(cpuTemp - cpuTempOld) > hyst:
             # Below first value, fan will run at min speed.
