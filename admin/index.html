@@ -23,13 +23,13 @@
       <div class="homeView">
         <div id="latest"></div>
         <div id="manualUnlock" class="topRightButton" onclick="manualunlockbutton()">unlock</div>
-        <div id="machineRoomToggle" class="topLeftButton" onclick="parsejson()">button</div>
+        <div id="machineRoomToggle" class="topLeftButton" onclick="sendData('DumpJSON;')">logs</div>
         <div id="lockdownButton" class="bottomRightButton" onclick="lockdownbutton()">lockdown</div>
-        <div id="machineRoomToggle" class="bottomLeftButton">button</div>
+        <div id="machineRoomToggle" class="bottomLeftButton" onclick='sendData()'>user manager</div>
       </div>
       <!-- <h1>JSON Parser</h1> -->
+      <input type="text" id="searchBar" onchange = "sendData('DumpJSON;' + document.getElementById('searchBar').value)">
       <div id="log">
-        <input type="text" id="searchBar">
       </div>
     </body>
 </html>

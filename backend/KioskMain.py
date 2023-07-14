@@ -10,8 +10,10 @@ from twisted.protocols.basic import LineReceiver
 import threading
 import socket
 from selenium import webdriver
-import datetime
-
+import string
+from datetime import datetime
+from collections import OrderedDict
+# os.chdir('../')
 # \033 is the "escape code." when printed to a terminal, the terminal processes the characters following it as commands for formatting, cursor control, and other terminal controls.
 redwhite = "\033[25;33;49m"
 homecursor = "\033[H"
@@ -170,7 +172,6 @@ class Echo(Protocol):
             
             self.out(boldul + "/id-remove" + unboldul + ": <#ID>")
             self.out("  Removes an ID from the system.")
-            
 
         if "/id-add" in cmd and self.authenticated:
             number = cmd.split(" ")[1]
@@ -195,9 +196,7 @@ class Echo(Protocol):
             jsonHelper.setJson(dir + "UIDs.json",UIDdata)
         
         if "/id-get" in cmd and self.authenticated:
-            
             ID = cmd.split(" ")[1]
-            
             print(machines)
             for i in machines:
                 i = i.replace(" ", "_")
@@ -209,7 +208,6 @@ class Echo(Protocol):
             }
             jsonHelper.setJson(dir + "UIDs.json",UIDdata)
 
-        
         if "/manual" in cmd and self.authenticated:
             self.out("Unlock request sent to hardware socket.")
             try:
@@ -257,7 +255,7 @@ class Simple(resource.Resource):
             return static.File(file_path).getContent()
         elif b"/admin/" in request.path:
           file_path = b"./admin/" + str(request.path.decode()).replace("/admin/","").encode()
-          return static.File(file_path).getContent()
+        return static.File(file_path).getContent()
         
 
 
@@ -268,11 +266,13 @@ class Simple(resource.Resource):
         
         if content.startswith("%"):
             resp = self.adminPostHandler(content.strip("%"))
-            print("[Admin] " + content.strip("%") + " --> " + str(resp))
+            if "Ping" not in content.strip("%") and "Ping" not in content.strip("%"):
+                print("[Admin] " + content.strip("%") + " --> " + str(resp))
             return str("%" + str(resp)).encode()
         elif content.startswith("+"):
             resp = self.UIPostHandler(content.strip("+"))
-            print("[UI] " + content.strip("+") + " --> " + resp)
+            if "Ping" not in content.strip("+"):
+                print("[UI] " + content.strip("+") + " --> " + resp)
             return str("+" + str(resp)).encode()
         
     def UIPostHandler(self, content):
@@ -290,10 +290,8 @@ class Simple(resource.Resource):
             print(e)
           if result[0] == "Incorrect":
             latestSignIns.append("Incorrect sign in attempted.")
-            # print("append " + latestSignIns[len(latestSignIns)-1])
             return "Incorrect"
           else:
-            # print(str("Authorize;" + result[0] + ";" + ";".join(result[1])))
             latestSignIns.append(result[0] + " is signing in...")
             return str("Authorize;" + result[0] + ";" + ";".join(result[1]))
         if "Unlock;" in content:
@@ -349,8 +347,58 @@ class Simple(resource.Resource):
           else:
             entry(True)
             return "Machine room open."
+        if "DumpJSON;" in content:
+            
+            returnall = "DumpJSON;" == content
+            if not returnall:
+                query = content.split(";")[1].lower()
+                
+            startTime = datetime.now()
+            logdata = OrderedDict(reversed(list(jsonHelper.getJson(dir + "log.json").items())))
+            UIDs = jsonHelper.getJson(dir + "UIDs.json")
+            
+            for key, value in logdata.items():                
+                try:
+                    value["name"] = UIDs[value["ID"]]['firstname'] + " " + UIDs[value["ID"]]['lastname']
+                    
+                    if not returnall:
+                        if (query not in str(value["name"]).lower()) and (query not in str(value["machines"]).lower()) and (query not in str(value["ID"]).lower()):
+                            value["include"] = "false"
+                        else:
+                            value["include"] = "true"
+                    else:
+                        value["include"] = "true"
+                    # if value["include"] == "true":
+                    #   n = 0
+                    #   for i in value["machines"]:
+                    #     value["machines"][n] = string.capwords(i)
+                    #     n+=1
+                except:
+                    value["include"] = "false"
+            
+            endTime = datetime.now()
+            execTime = endTime - startTime
+            jsonHelper.setJson(dir + "../admin/data.json", logdata)
+            print("[MMRKV2] JSON dumped in " + str(execTime.total_seconds()*1000) + " milliseconds.")
+            return "DumpedJSON;"
+        if "SetID;" in content:
+            UIDdata = jsonHelper.getJson(dir + "UIDs.json")
+            if ";del;" in content:
+                number = content.split(";del;")[1]
+                del UIDdata[number]
+            elif ";update;" in content: #SetID;update;12345,mae,sub,machine1&machine2
+                args = content.split(";update;")[1].split(",")
+                UIDdata[args[0]] = {
+                "firstname":args[1],
+                "lastname":args[2],
+                "machines":args[3].split("&")
+				}
+            
+            jsonHelper.setJson(dir + "UIDs.json",UIDdata)
+            print("[MMRKV2] JSON dumped in " + str(execTime.total_seconds()*1000) + " milliseconds. (Query: '" + query + "')")
+            return "DumpedJSON;"
+                
           
-
 def main():
     
     try:
@@ -401,13 +449,16 @@ def install(out):
 
 def log(ID, machines):
     logdata = jsonHelper.getJson(dir + "log.json")
-    logdata [datetime.datetime.now().timestamp()] = {
+    logdata [datetime.now().timestamp()] = {
         "ID":ID,
         "machines":machines
     }
     jsonHelper.setJson(dir + "log.json",logdata)
 
-
+def getName(data,ID):
+    if ID in data:
+      
+      return data[ID]['firstname'] + " " + data[ID]['lastname']
 def checkID(ID):
     UIDs = jsonHelper.getJson(dir + "UIDs.json")
     if ID in UIDs:
@@ -422,9 +473,7 @@ if __name__ == "__main__":
 
     if debug or "--debug" in sys.argv:
         import os
-
         dir = "./data/"
-        # os.system("wt.exe telnet 127.0.0.1 8000")
         kioskIP = "192.168.86.80"
 
     

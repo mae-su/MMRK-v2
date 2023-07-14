@@ -3,15 +3,45 @@ var signInUnlock = false
 var entryDenied = false
 var errorState = false
 var logScreen = false
+var managerScreen = false
 var closed = false
 var selected = []
 var displaytimer = 0
-document.documentElement.style.setProperty("--bordercolor", "hsla(54, 0%, 60%,80%)");
+var searchquery = ""
+
+function getElement(s){
+  return document.getElementById(s)
+}
+function setDocProperty(p,v){
+  document.documentElement.style.setProperty(p,v)
+}
+function rmBodyClass(c){
+  if(typeof c === 'string' || c instanceof String){
+    document.body.classList.remove(c)
+  }
+  else{
+    for (const i in c) {
+      document.body.classList.remove(c[i])
+    }
+  }
+}
+
+function addBodyClass(c){
+  if(typeof c === 'string' || c instanceof String){
+    document.body.classList.add(c)
+  }
+  else{
+    for (const i in c) {
+      document.body.classList.add(c[i])
+    }
+  }
+}
+
+setDocProperty("--bordercolor", "hsla(54, 0%, 60%,80%)");
 var teleporturl = ""
 if(window.location.href.includes(":5500")){
   teleporturl = window.location.href.split(":5500")[0] + ":8080/teleport"; //automatically reconstructs the server URL if the admin url is through a Five Server environment
 } else{
-
   teleporturl = window.location.href.split("/admin")[0] + "/teleport";
 }
 
@@ -19,83 +49,87 @@ setInterval(function() {
   sendData("Ping,");
 }, 500);
 
-
-
 document.addEventListener("keypress", function onPress(event) {
   if (!signInUnlock) {
     if (!isNaN(event.key)){
       key(parseInt(event.key)); 
-    }
-  }
+    }  
+  } else if(logScreen){
+    setTimeout(function () {
+    sendData('DumpJSON;' + getElement('searchBar').value);
+  },50)
+}
 });
 
 document.addEventListener('keydown', function(event) {
-  
   if (event.key === 'Escape' && document.documentElement.classList != "_default _defaultInteractable") {
     if(logScreen){
       logScreen = false;
-      document.body.classList.remove('logScreen');
-      document.body.classList.add('home');
+      rmBodyClass('logScreen');
+      addBodyClass('home');
     }
+    
+  }else if(logScreen && searchquery != getElement('searchBar').value && event.key ==='Backspace'){
+    searchquery = getElement('searchBar').value;
+      sendData('DumpJSON;' + searchquery);
   }
 });
 
 function borderStep(step){
-  if (step==-1){
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 100%, 0 100%, 100% 100%, 0% 100%)";
+  switch (step){
+  case -1:
+    getElement("buttonDecorator").style.clipPath = "polygon(0 100%, 0 100%, 100% 100%, 0% 100%)";
+    break;
+  case 0:
+    getElement("buttonDecorator").style.clipPath = "polygon(0 100%, 0 0%, 0% 0%, 0% 100%)";
+    break
+  case 1:
+    setDocProperty("--bordercolor", "#f4e136");
+    rmBodyClass('welcome');
+    addBodyClass('idscreen');
+    getElement("buttonDecorator").style.clipPath = "polygon(0 0, 0 0, 22% 100%, 0% 100%)";
+    break;
+  case 2:
+    getElement("buttonDecorator").style.clipPath = "polygon(0 0, 20% 0, 20% 100%, 0% 100%)";
+    break
+  case 3:
+  getElement("buttonDecorator").style.clipPath = "polygon(0 0, 44% 0, 44% 100%, 0% 100%)";
+    break
+  case 4:
+    getElement("buttonDecorator").style.clipPath = "polygon(0 0, 66% 0, 66% 100%, 0% 100%)";
+    break
+  case 5:
+    getElement("buttonDecorator").style.clipPath = "polygon(0 0, 100% 0, 100% 100%, 0% 100%)";
+    break
   }
-  if(step==0){
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 100%, 0 0%, 0% 0%, 0% 100%)";
-  }
-  if(step==1){
-    document.documentElement.style.setProperty("--bordercolor", "#f4e136");
-    document.body.classList.remove('welcome');
-    document.body.classList.add('idscreen');
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 0 0, 22% 100%, 0% 100%)";
-  }
-  if(step==2){
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 20% 0, 20% 100%, 0% 100%)";
-  }
-  if(step==3){
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 44% 0, 44% 100%, 0% 100%)";
-    }
-    if(step==4){
-      document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 66% 0, 66% 100%, 0% 100%)";
-    }
-    if(step==5){
-      document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 100% 0, 100% 100%, 0% 100%)";
-    }
 }
 
 function updateDots(first=false){
   var s = "";
+  if(ID.length == 0){
+    s = "_ _ _ _ _"
+  } else{
+    borderStep(ID.length)
+  }
     if(first){
       borderStep(-1)
     }
-    if(ID.length == 0){
-        s = "_ _ _ _ _"
-    }
-    if(ID.length == 1){
-      borderStep(1)
+  if(ID.length == 1){
         s = "* _ _ _ _"
     }
     if(ID.length == 2){
-      borderStep(2)
         s = "* * _ _ _"
     }
     if(ID.length == 3){
-      borderStep(3)
       s = "* * * _ _"
     }
     if(ID.length == 4){
-      borderStep(4)
         s = "* * * * _"
     }
     if(ID.length == 5){
-      borderStep(5)
       s = "* * * * *"
     }
-    document.getElementById("subtext").innerText = s
+    getElement("subtext").innerText = s
 }
 function del(){
     ID = ID.slice(0,ID.length - 1)
@@ -120,29 +154,26 @@ function lockdownbutton(){
 
 function manualunlockbutton(){
   sendData("Manual;");
-  document.documentElement.style.setProperty("--shadowmult", "0.1");
-  document.getElementById("manualUnlock").style.opacity = "0.5";
+  setDocProperty("--shadowmult", "0.1");
+  getElement("manualUnlock").style.opacity = "0.5";
   setTimeout(function () {
-    // document.documentElement.style.setProperty("--shadowmult", "1");
+    // setDocProperty("--shadowmult", "1");
     setTimeout(function () {
-      document.documentElement.style.setProperty("--shadowmult", "1");
+      setDocProperty("--shadowmult", "1");
       
     }, 150);
-    document.getElementById("manualUnlock").style.opacity = "1";
+    getElement("manualUnlock").style.opacity = "1";
   }, 400);
 }
 
 function resetScreen(){
-  document.documentElement.style.setProperty("--bordercolor", "hsl(54, 0%, 65%)");
-  document.body.classList.remove('idscreen');
-  document.body.classList.remove('screen2');
-  document.body.classList.remove("closed");
-  document.body.classList.remove("home");
-  document.body.classList.add('welcome');
-  document.getElementById("latest").style.opacity = 0;
-  document.getElementById("signInText").innerText = "sign in";
-  document.getElementById("text").innerText = "welcome back."
-  document.getElementById("subtext").innerText = "please sign in.";
+  setDocProperty("--bordercolor", "hsl(54, 0%, 65%)");
+  rmBodyClass(['idscreen','screen2',"closed","home"]);
+  addBodyClass('welcome');
+  getElement("latest").style.opacity = 0;
+  getElement("signInText").innerText = "sign in";
+  getElement("text").innerText = "welcome back."
+  getElement("subtext").innerText = "please sign in.";
   signInUnlock=false;
   ID = ""
   // entryDenied = false;
@@ -150,8 +181,8 @@ function resetScreen(){
 function signInButton(){
   if(!errorState){
       sendData("Ping,");
-      document.documentElement.style.setProperty("--bordercolor", "#f4e136");
-      document.body.classList.remove('welcome');document.body.classList.add('idscreen');
+      setDocProperty("--bordercolor", "#f4e136");
+      rmBodyClass('welcome');addBodyClass('idscreen');
       updateDots(true)
     
   }
@@ -164,11 +195,14 @@ function signedIn(){
 }
 
 function parsejson(){
+  logScreen = true;
   fetch('data.json')
   .then(response => response.json())
   .then(data => {
     // Get the 'entries' div element
-    const entriesDiv = document.getElementById('log');
+    console.log(data)
+    const entriesDiv = getElement('log');
+    entriesDiv.innerHTML = ""
     var i = 0
     // Iterate over each entry in the JSON data
     for (const timestamp in data) {
@@ -179,27 +213,30 @@ function parsejson(){
       entryElement.className = 'logEntry';
 
       // Create a heading element for the timestamp
-      const timestampHeading = document.createElement('h2');
-      timestampHeading.textContent = new Date(parseFloat(timestamp) * 1000).toLocaleString();
+      const timestampHeading = document.createElement('span');
+      timestampHeading.textContent = ((new Date(parseFloat(timestamp) * 1000).toLocaleString("en-US",{weekday: "short", month: "long", day: "numeric", year: "numeric"})).split(", 20")[0]) + " at " + (new Date(parseFloat(timestamp) * 1000).toLocaleTimeString("en-US"));
       entryElement.appendChild(timestampHeading);
+      
+      const machines = entry.machines.join(', ')
+      const whoSignedIn = document.createElement('p');
+      if(machines.length == 0){
+        whoSignedIn.textContent = entry.name + " signed in without selecting any machines.";
+      } else{
+        whoSignedIn.textContent = entry.name + " signed in and used: " + entry.machines.join(', ');
+      }
+      entryElement.appendChild(whoSignedIn);
 
-      // Create a paragraph element for the ID
-      const idParagraph = document.createElement('p');
-      idParagraph.textContent = 'ID: ' + entry.ID;
-      entryElement.appendChild(idParagraph);
-
-      // Create a paragraph element for the machines
-      const machinesParagraph = document.createElement('p');
-      machinesParagraph.textContent = 'Machines: ' + entry.machines.join(', ');
-      entryElement.appendChild(machinesParagraph);
+      // entryElement.appendChild(machinesParagraph);
 
       // Append the entry element to the 'entries' div
-      entriesDiv.appendChild(entryElement);
+      if(entry.include != "false"){
+        entriesDiv.appendChild(entryElement);
+      }
     }
   console.log("Rendered " + String(i) + " entries.")
-  document.body.classList.remove('home');
-  document.body.classList.add('logScreen');
-  logScreen = true;
+  rmBodyClass('home');
+  addBodyClass('logScreen');
+  
 })
   .catch(error => console.error(error));
   
@@ -227,40 +264,40 @@ function sendData(data) {
             
             if(resp.includes("Authorize")){
               var set = resp.split(";")
-              document.getElementById("signInText").innerText = "signing in..."
-              document.body.classList.add('screen2');
-              document.body.classList.remove('idscreen');
+              getElement("signInText").innerText = "signing in..."
+              addBodyClass('screen2');
+              rmBodyClass('idscreen');
               signInUnlock = true;
-              document.documentElement.style.setProperty("--bordercolor", "#00BB00");
+              setDocProperty("--bordercolor", "#00BB00");
               setTimeout(function () {
-                document.body.classList.add('home');
+                addBodyClass('home');
                 signedIn()
               }, 1000);
             }
             if(resp.includes("Latest;")){
               displaytimer = 6
               var latest = resp.split(";")[1];
-              document.getElementById("latest").style.opacity = 0;
+              getElement("latest").style.opacity = 0;
               setTimeout(function () {
-                document.getElementById("latest").innerText = latest;
+                getElement("latest").innerText = latest;
               }, 400);
               setTimeout(function () {
-                document.getElementById("latest").style.opacity = 0.85;
+                getElement("latest").style.opacity = 0.85;
               }, 800);
             } 
             else if(resp.includes("Latest")){
               if(displaytimer == 0){
                 displaytimer = -1;
-                document.getElementById("latest").style.opacity = 0;
+                getElement("latest").style.opacity = 0;
                 setTimeout(function () {
                   if(entryDenied){
-                    document.getElementById("latest").innerText = "Machine room closed.";
+                    getElement("latest").innerText = "Machine room closed.";
                   } else{
-                    document.getElementById("latest").innerText = "Kiosk is running.";
+                    getElement("latest").innerText = "Kiosk is running.";
                   }
                 }, 500);
                 setTimeout(function () {
-                  document.getElementById("latest").style.opacity = 0.85;
+                  getElement("latest").style.opacity = 0.85;
                 }, 1000);
               } else if(displaytimer>0){
                 displaytimer = displaytimer - 1
@@ -268,14 +305,16 @@ function sendData(data) {
             }
             
             if(resp == "Incorrect"){
-              document.documentElement.style.setProperty("--bordercolor", "red");
+              setDocProperty("--bordercolor", "red");
               setTimeout(function () {
-                document.documentElement.style.setProperty("--bordercolor", "#f4e136")
+                setDocProperty("--bordercolor", "#f4e136")
               }, 250);
               ID = ""
               updateDots()
             }
-
+            if(resp.includes("DumpedJSON;")){
+              parsejson()
+            }
             if(resp.includes("entryDenied")){
               if(errorState){
                 location.reload()
@@ -283,9 +322,9 @@ function sendData(data) {
               if(!entryDenied){
                 entryDenied = true;
                 
-                document.body.classList.add("closed");
+                addBodyClass("closed");
                 displaytimer = 0;
-                // document.documentElement.style.setProperty("--bordercolor", "red");
+                // setDocProperty("--bordercolor", "red");
               }
             }
             if(resp.includes("entryAllowed")){
@@ -294,7 +333,7 @@ function sendData(data) {
               }
               if(entryDenied){
                 
-                document.body.classList.remove("closed");
+                rmBodyClass("closed");
                 entryDenied = false;
                 displaytimer = 0;
               }
@@ -314,11 +353,11 @@ function sendData(data) {
           if(!errorState){
             errorState = true;
             resetScreen();
-            // document.getElementById("signInText").innerText = "the backend is offline. please restart.";
-            document.documentElement.style.setProperty("--bordercolor", "darkred");
-            document.getElementById("text").innerText = "the kiosk backend did not serve a proper response.";
-            document.getElementById("subtext").innerText = "please restart the kiosk, verify its wifi connection, or debug the backend: kill all python scripts and execute from terminal."
-            document.getElementById("signInText").innerText = ""
+            // getElement("signInText").innerText = "the backend is offline. please restart.";
+            setDocProperty("--bordercolor", "darkred");
+            getElement("text").innerText = "the kiosk backend did not serve a proper response.";
+            getElement("subtext").innerText = "please restart the kiosk, verify its wifi connection, or debug the backend: kill all python scripts and execute from terminal."
+            getElement("signInText").innerText = ""
             
           }
           console.error('Error:', xhr.status);
