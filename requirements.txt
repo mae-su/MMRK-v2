@@ -3,10 +3,9 @@ websocket-server
 Flask
 websockets
 pyopenssl==22.0.0
-rich
-art==5.9
 uploadserver
 twisted
 service_identity
 pyOpenSSL
 selenium
+psutil

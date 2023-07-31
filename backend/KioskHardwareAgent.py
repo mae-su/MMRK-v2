@@ -1,7 +1,7 @@
+import sys
+sys.path.append('/home/pi/MMRK-V2/backend/')
 import asyncio
 from websocket_server import WebsocketServer
-
-import sys
 
 gpio = True
 threadedserver=True
@@ -51,7 +51,7 @@ if True:
             asyncio.create_task(card.setServo(int(input())))
             await asyncio.sleep(1)
     
-    async def unlock(s):
+    async def unlock(s): # Edit with caution. This script has been heavily fine-tuned for precise and repeatable movement.
         print("[CARD] Retracting card.")
         asyncio.create_task(card.setServo(servoParkPosition))
         await asyncio.sleep(1)
@@ -70,11 +70,7 @@ if True:
             await asyncio.sleep(1)
             print("[CARD] Confirming position...")
             asyncio.create_task(card.setServo(servoParkPosition))
-                
             unlockEvent.clear()
-    
-    async def startupSound():
-        pass
     
     async def server():
         PORT=9001

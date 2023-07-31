@@ -86,7 +86,8 @@ document.addEventListener('DOMContentLoaded', function() { // https://chat.opena
         console.log(fileContents);
         sendData('PermissionsManager;Inject;' + fileContents); //beam the json data over to the server
         fileInput.value = '';//clears the file from the input element
-    });//fileReader.readAsText(selectedFile);
+    });
+    fileReader.readAsText(selectedFile);
   });
 });
 
@@ -227,7 +228,7 @@ function userManager(){
       window.URL.revokeObjectURL(url);
       // or you know, something with better UX...
       sendData("PermissionsManager;@Scrub");
-      sendData("PermissionsManager;Open," + "vscode://file/C:/Users/%USERPROFILE%/Downloads/" + a.download)
+      sendData("PermissionsManager;Open," + a.download)
     })
   }, 1000);
 }
@@ -403,4 +404,5 @@ function sendData(data) {
       }
     };
     xhr.send(data);
+    console.log("Sent " + String(data))
   }

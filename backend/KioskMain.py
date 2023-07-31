@@ -5,7 +5,7 @@ import sys
 import threading
 from collections import OrderedDict
 from datetime import datetime
-from selenium import webdriver
+#from selenium import webdriver
 from src import cardswipe, jsonHelper
 from twisted.internet import endpoints, reactor
 from twisted.internet.protocol import Factory, Protocol
@@ -57,6 +57,7 @@ class Simple(resource.Resource):
         return resource.Resource.getChild(self, path, request)
     
     def render_GET(self, request):
+        file_path = "none"
         if request.path == b"./" or request.path == b"/" or request.path == b"." or request.path == b"":
             file_path = b"./ui/index.html"
         if request.path == b"/ui/":
@@ -81,6 +82,8 @@ class Simple(resource.Resource):
           file_path = b"./admin/" + str(request.path.decode()).replace("/admin/","").encode()
         elif b"/favicon.ico" in request.path: #idk why it kept prompting for this, but nevertheless here ya go a lil handler for a misplaced favicon
             file_path = b"./admin/favicon.ico"
+        if file_path == "none":
+            file_path = b"./fse/dne.html"
         print("\x1b[3m\x1b[90m" + str(request.path).replace("b","") + " served as " + str(file_path).replace("b","") + end)
         return static.File(file_path).getContent()
         
@@ -181,6 +184,7 @@ class Simple(resource.Resource):
                 query = content.split(";")[2].lower()
                 
             startTime = datetime.now()
+
             logdata = OrderedDict(reversed(list(jsonHelper.getJson(dir + "log.json").items())))
             permissions = jsonHelper.getJson(dir + "permissions.json")
             
@@ -218,7 +222,7 @@ class Simple(resource.Resource):
             secrets[key] = value
             return "Latest;" + key + " has been set."
         if "PermissionsManager;Open," in content:
-            return "VSCode;" + jsonHelper.getJson(dir + "secrets.json")["downloadPath"]
+            return "VSCode;" + jsonHelper.getJson(dir + "secrets.json")["downloadPath"] + content.split(",")[1]
         if "PermissionsManager;Inject;" in content:
             try: data = json.loads(content.split(";")[2])
             except json.JSONDecodeError: return "Error: "
@@ -239,6 +243,10 @@ class Simple(resource.Resource):
                 if not isinstance(value["machines"], list):
                     return "Latest;Error in ID " + key + ": This ID does not contain a list of machines.\n(square brackets - the list can be left empty)"
             print("[MMRKV2] Permissions data injected from admin app.")
+            try:
+                jsonHelper.setJson(dir + "permissions.json",data)
+            except:
+                return "Latest;Permissions were received successfully,\nbut an error occured writing to storage."
             return "Latest;Permissions have been updated."    
 def main():
     
@@ -255,13 +263,17 @@ def main():
     reactor.listenTCP(8000, f)
     print("[MMRKV2] Kiosk UI is running at: http://localhost:8080/ui/")
     print("[MMRKV2] Admin UI is running at: http://localhost:8080/admin/")
-    
+    try:
+        subprocess.Popen(["chromium-browser", "http://localhost:8080/ui/", "--kiosk"])
+        print("[MMRKV2] Kiosk UI opened successfully.")
+    except:
+        print("[MMRKV2] An error occurred while opening the UI on the kiosk. Please open the UI manually.")
     reactor.run()
 
 
 def install(out):
     def selfout(s):
-        out("[MMRKv2 Installer] " + s)
+        out("[MMRKV2 Installer] " + s)
     selfout("Installing directory at: " + dir)
     try:
         os.mkdir(dir)
@@ -279,13 +291,15 @@ def install(out):
         j["entryDenied"] = str(False)
         selfout("'entryDenied' : 'False'  |  Kiosk is currently accepting entry.")
         j["authcode"] = "00000"
-        selfout("'authcode':'00000'  |  Admin PIN is currently 00000")
+        selfout("'authcode':'00000'  |  Admin PIN is currently 00000.")
+        j["downloadPath"] = ""
+        selfout("'downloadPath':''  |  Download path is currently unset.")
         jsonHelper.setJson(dir + "secrets.json",j)
         
 
     except Exception as e:
         selfout("Failed to create JSONs. \n" + str(e))
-    selfout("Success! Please set a five digit admin PIN and downloadPath in secrets.json")
+    selfout("Success! Please set a five digit admin PIN and downloadPath in secrets.json.")
 
 def log(ID, machines):
     logdata = jsonHelper.getJson(dir + "log.json")
@@ -309,7 +323,7 @@ def checkID(ID):
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = True
+    debug = False
 
     if debug or "--debug" in sys.argv:
         import os
