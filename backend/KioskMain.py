@@ -1,19 +1,17 @@
-import sys
+import json
 import os
-import art
-from src import jsonHelper
-from src import cardswipe
-from twisted.internet import reactor, endpoints
-from twisted.internet.protocol import Factory, Protocol
-from twisted.web import server, resource, static
-from twisted.protocols.basic import LineReceiver
-import threading
-from selenium import webdriver
-from datetime import datetime
-from collections import OrderedDict
 import subprocess
-# os.chdir('../')
-# \033 is the "escape code." when printed to a terminal, the terminal processes the characters following it as commands for formatting, cursor control, and other terminal controls.
+import sys
+import threading
+from collections import OrderedDict
+from datetime import datetime
+from selenium import webdriver
+from src import cardswipe, jsonHelper
+from twisted.internet import endpoints, reactor
+from twisted.internet.protocol import Factory, Protocol
+from twisted.protocols.basic import LineReceiver
+from twisted.web import resource, server, static
+
 redwhite = "\033[25;33;49m"
 homecursor = "\033[H"
 clearscreen = "\033[J"
@@ -30,21 +28,14 @@ latestSignIns = []
 dir = "./data/"  # This is where files will be stored on the pi.
 firstboot = False
 kioskIP = "127.0.0.1"
-clisplash = (
-    redwhite
-    + art.text2art("MMRK", font="rounded", sep="\r\n")
-    + "MILL Machine Room Kiosk V2\n"
-)
 
 def entry(b=None):
   if b is None:
     j = jsonHelper.getJson(dir + "secrets.json")["entryDenied"]
-    # print(jsonHelper.getJson(dir + "secrets.json")["entryDenied"])
     if j == "False":
       return False
     if j == "True":
       return True
-    
   else:
     j = jsonHelper.getJson(dir + "secrets.json")
     j["entryDenied"] = str(b)
@@ -58,202 +49,39 @@ def isinstalled(dir):
         print(dir + " not found.")
         return False
 
-
-class Echo(Protocol):
-    inProcessString = ""
-    keypress = False  # if waiting for a keypress instead of processing commands
-    latestkey = ""
-    inputEvent = threading.Event()
-    keycmd = ""
-    authenticated = False
-
-    def out(self, s, nl="\r", end="\n"):
-        self.transport.write((nl + str(s) + end).encode())
-
-    def keyflag(self, cmd=None):
-        """Shorthand for interfacing with key commands"""
-        if cmd is None:
-            self.keypress = False
-        else:
-            self.keypress = True
-            self.keycmd = cmd
-            self.transport.write("\033[25l".encode())
-
-    def connectionMade(self):
-        self.teleport_protocol = TeleportProtocol(self)
-        self.authenticated = False
-        self.out(screenf)
-        self.out(clisplash)
-        self.out("Welcome to the kiosk shell.")
-        if not isinstalled(dir + "secrets.json"):
-            self.authenticated = True
-            self.out(
-                "No admin password is set. Please set one using /adminpass <password>"
-            )
-        if firstboot:
-            self.out(
-                bold + "\033[101m" + "PINs and credentials need setting up. Press " + boldul + "Space" + unboldul + " to continue setup, or " + boldul + "+" + unboldul + " to reinstall an archive file."
-            )
-            self.out("\033[25l")
-            self.keyflag("setup|archive")
-        elif not self.authenticated:
-            self.out(
-                "Please authenticate with " + bold + "/unlock <password>" + unbold + ", or type " + bold + "/exit" + unbold + " to disconnect.\r\n"
-            )
-
-    def dataReceived(self, data):
-        if self.keypress:
-            print(data.decode())
-            self.inputEvent.set()
-            self.latestkey = data.decode().strip("\n")
-            self.keypress = False
-            # KEY COMMANDS
-            if self.keycmd == "setup|archive":
-                if " " in self.latestkey:
-                    install(self.out)
-            self.keycmd = ""
-        else:
-            if data.decode() == "\b":
-                self.inProcessString = self.inProcessString[:-1]
-                self.transport.write("\033[0C\x08 \x08".encode())
-            else:
-                self.inProcessString += data.decode()
-                if "\n" in self.inProcessString:
-                    self.inProcessString.strip().strip("\n")
-                    if "/exit" in self.inProcessString:
-                        self.transport.write((end + clearscreen + homecursor + bold + clearscreen + "\rDisconnected. Press enter to return to shell.\n" + redwhite + "MMRK v2 by mae.red (2023)\b" + end + redwhite).encode())
-                        self.transport.loseConnection()
-                    else:
-                        self.shellcommand(self.inProcessString)
-    
-    def shellcommand(self, cmd):
-        cmd = cmd.strip()
-        self.transport.write((redwhite + unbold).encode)
-        print("Command parsed: " + cmd)
-        self.inProcessString = ""
-        if "/adminpass" in cmd and self.authenticated:
-            print("authcode = " + str(cmd).split(" ")[1])
-            self.out("Admin password has been set to " + cmd.split(" ")[1])
-            self.out("Writing secrets.json to " + dir)
-            jsonHelper.createJSON(dir + "secrets.json")
-            jsonHelper.setJson(
-                dir + "secrets.json", {"authcode": cmd.split(" ")[1].strip()}
-            )
-
-        if "/unlock" in cmd:
-            if self.authenticated:
-                self.out("Already authenticated.")
-            else:
-                try:
-                    if jsonHelper.getJson(dir + "secrets.json")[
-                        "authcode"
-                    ] in cmd.split(" ")[1].strip("\n"):
-                        self.out("Authenticated! Admin commands now enabled.")
-                        self.authenticated = True
-                    else:
-                        self.out("Incorrect password.")
-                except:
-                    self.out("An error occured.")
-                    
-        if "/getlog" in cmd and self.authenticated:
-            self.out()
-
-        if "/help" in cmd:
-            self.out("")
-            self.out(boldul + "/help" + unboldul + ": The command you're using right now. Wowzers.")
-            self.out(boldul + "/id-add" + unboldul + ":")
-            self.out("  Adds an ID to the system.")
-            self.out("  Format: /id-add <#ID> <firstname> <lastname> <machine> <machine> <...>")
-            self.out("  Ex: /id-add 12345 Jane Doe bandsaw sanding_belt drill_press")
-            self.out("  All arguments should be separated by spaces. To add a space inside an argument, use an underscore:")
-            self.out("  \'Sanding Belt\' --> sanding_belt")
-            self.out("")
-            
-            self.out(boldul + "/id-remove" + unboldul + ": <#ID>")
-            self.out("  Removes an ID from the system.")
-
-        if "/id-add" in cmd and self.authenticated:
-            number = cmd.split(" ")[1]
-            firstname = cmd.split(" ")[2]
-            lastname = cmd.split(" ")[3]
-            machines = cmd.split(" ")[4:(len(cmd.strip().split(" ")))]
-            print(machines)
-            for i in machines:
-                i = i.replace(" ", "_")
-            UIDdata = jsonHelper.getJson(dir + "UIDs.json")
-            UIDdata[number] = {
-                "firstname":firstname,
-                "lastname":lastname,
-                "machines":machines
-            }
-            jsonHelper.setJson(dir + "UIDs.json",UIDdata)
-        
-        if "/id-remove" in cmd and self.authenticated:
-            number = cmd.split(" ")[1]
-            UIDdata = jsonHelper.getJson(dir + "UIDs.json")
-            del UIDdata[number]
-            jsonHelper.setJson(dir + "UIDs.json",UIDdata)
-        
-        if "/id-get" in cmd and self.authenticated:
-            ID = cmd.split(" ")[1]
-            print(machines)
-            for i in machines:
-                i = i.replace(" ", "_")
-            UIDdata = jsonHelper.getJson(dir + "UIDs.json")
-            UIDdata[number] = {
-                "firstname":firstname,
-                "lastname":lastname,
-                "machines":machines
-            }
-            jsonHelper.setJson(dir + "UIDs.json",UIDdata)
-
-        if "/manual" in cmd and self.authenticated:
-            self.out("Unlock request sent to hardware socket.")
-            try:
-                if debug:
-                    print("[DEBUG] Card swipe called.")
-                else:
-                    cardswipe.main(IP=kioskIP)
-            except:
-                self.out
-        self.out("",end="bold")
-        
-class TeleportProtocol(LineReceiver):
-    def __init__(self, echo_protocol):
-        self.echo_protocol = echo_protocol
-
-    def lineReceived(self, line):
-        print("Received:", line)
-        self.echo_protocol.sendLine(line)
-
 class Simple(resource.Resource):
     isLeaf = True
-    
     def getChild(self, path, request):
         if path == b"":
             return self
         return resource.Resource.getChild(self, path, request)
-
+    
     def render_GET(self, request):
-        print(str(request.path))
-        if request.path == b"./":
+        if request.path == b"./" or request.path == b"/" or request.path == b"." or request.path == b"":
             file_path = b"./ui/index.html"
-            return static.File(file_path).getContent()
-        
         if request.path == b"/ui/":
           file_path = b"./ui/index.html"
-          return static.File(file_path).getContent()
         elif b"/ui/" in request.path:
           file_path = b"./ui/" + str(request.path.decode()).replace("/ui/","").encode()
-          return static.File(file_path).getContent()
-            
+        
         if request.path == b"/log.json":
             file_path = b"./data/log.json"
+
+        if b"secrets" in request.path:
+            file_path = b"./fse/dne.html"
+        if b"tryharder" in request.path:
+            file_path = b"./fse/rick.mp4"
+        if b"yadonegoofed" in request.path:
+            file_path = b"./fse/styles.min.css"
+        
         if request.path == b"/admin/":
             file_path = b"./admin/index.html"
-            return static.File(file_path).getContent()
+
         elif b"/admin/" in request.path:
           file_path = b"./admin/" + str(request.path.decode()).replace("/admin/","").encode()
+        elif b"/favicon.ico" in request.path: #idk why it kept prompting for this, but nevertheless here ya go a lil handler for a misplaced favicon
+            file_path = b"./admin/favicon.ico"
+        print("\x1b[3m\x1b[90m" + str(request.path).replace("b","") + " served as " + str(file_path).replace("b","") + end)
         return static.File(file_path).getContent()
         
 
@@ -265,7 +93,7 @@ class Simple(resource.Resource):
         
         if content.startswith("%"):
             resp = self.adminPostHandler(content.strip("%"))
-            if "Ping" not in content.strip("%") and "Ping" not in content.strip("%"):
+            if "Ping" not in content.strip("%") and "Ping" not in content.strip("%") and not str(resp)=="Latest":
                 print("[Admin] " + content.strip("%") + " --> " + str(resp))
             return str("%" + str(resp)).encode()
         elif content.startswith("+"):
@@ -308,8 +136,8 @@ class Simple(resource.Resource):
             return str("Ipaddr;" + subprocess.getoutput("hostname -I"))  # send IP address
         else:
             return "OK"  # Return a response to the client
+    
     def adminPostHandler(self, content):
-
         if "Ping" in content:
           if entry():
             return str("entryDenied;")
@@ -347,19 +175,18 @@ class Simple(resource.Resource):
           else:
             entry(True)
             return "Machine room open."
-        if "DumpJSON;" in content:
-            
-            returnall = "DumpJSON;" == content
+        if "LogData;Dump;" in content:
+            returnall = "LogData;Dump;" == content
             if not returnall:
-                query = content.split(";")[1].lower()
+                query = content.split(";")[2].lower()
                 
             startTime = datetime.now()
             logdata = OrderedDict(reversed(list(jsonHelper.getJson(dir + "log.json").items())))
-            UIDs = jsonHelper.getJson(dir + "UIDs.json")
+            permissions = jsonHelper.getJson(dir + "permissions.json")
             
             for key, value in logdata.items():                
                 try:
-                    value["name"] = UIDs[value["ID"]]['firstname'] + " " + UIDs[value["ID"]]['lastname']
+                    value["name"] = permissions[value["ID"]]['firstname'] + " " + permissions[value["ID"]]['lastname']
                     
                     if not returnall:
                         if (query not in str(value["name"]).lower()) and (query not in str(value["machines"]).lower()) and (query not in str(value["ID"]).lower()):
@@ -368,23 +195,51 @@ class Simple(resource.Resource):
                             value["include"] = "true"
                     else:
                         value["include"] = "true"
-                    # if value["include"] == "true":
-                    #   n = 0
-                    #   for i in value["machines"]:
-                    #     value["machines"][n] = string.capwords(i)
-                    #     n+=1
                 except:
                     value["include"] = "false"
-            
             endTime = datetime.now()
             execTime = endTime - startTime
-            jsonHelper.setJson(dir + "../admin/data.json", logdata)
-            print("[MMRKV2] JSON dumped in " + str(execTime.total_seconds()*1000) + " milliseconds.")
-            return "DumpedJSON;"
-        if "UIDManager;" in content:
-            uploadserver = subprocess.Popen("python3 -m uploadserver 4196",shell=True,stdin=None, stdout=None, stderr=None, close_fds=True)
-            return "Latest;User manager will stop in 60s."
-            
+            jsonHelper.setJson(dir + "../admin/buffer.json", logdata)
+            print("[MMRKV2] Log data dumped to admin buffer in " + str(execTime.total_seconds()*1000) + " milliseconds.")
+            return "DumpedLogJSON;"
+        
+        if "PermissionsManager;Dump" in content:
+            jsonHelper.setJson(dir + "../admin/buffer.json", jsonHelper.getJson(dir + "permissions.json"))
+            print("[MMRKV2] Permissions data dumped to admin buffer.")
+            return "Latest;Downloading..."
+        if "PermissionsManager;Scrub" in content:
+            jsonHelper.setJson(dir + "../admin/buffer.json", {})
+            print("[MMRKV2] Permissions data scrubbed from admin buffer.")
+            return "Latest;Opening VSCode..."
+        if "SetSecret;" in content:
+            secrets = jsonHelper.getJson(dir + "secrets.json")
+            key = content.split(";")[1]
+            value = content.split(";")[2]
+            secrets[key] = value
+            return "Latest;" + key + " has been set."
+        if "PermissionsManager;Open," in content:
+            return "VSCode;" + jsonHelper.getJson(dir + "secrets.json")["downloadPath"]
+        if "PermissionsManager;Inject;" in content:
+            try: data = json.loads(content.split(";")[2])
+            except json.JSONDecodeError: return "Error: "
+            print(data)
+            if not data:
+                return "Latest;Error: Empty JSON was refused."
+            for key, value in data.items():
+                if not key.isdigit():
+                    return "Latest;Error: One or more IDs were not numeric:\n" + key
+                if not len(key) == 5:
+                    return "Latest;Error: This ID is not five digits long:\n" + key
+                if not isinstance(value, dict):
+                    return "Latest;Error in ID " + key + ": Fields are incorrectly formatted."
+                
+                required_fields = {"firstname", "lastname", "machines"}
+                if not set(value.keys()) == required_fields:
+                    return "Latest;Error in ID " + key + ": This ID does not contain the right fields.\n(\"firstname\",\"lastname\",\"machines\")"
+                if not isinstance(value["machines"], list):
+                    return "Latest;Error in ID " + key + ": This ID does not contain a list of machines.\n(square brackets - the list can be left empty)"
+            print("[MMRKV2] Permissions data injected from admin app.")
+            return "Latest;Permissions have been updated."    
 def main():
     
     try:
@@ -394,7 +249,6 @@ def main():
         install(print)
     print("[MMRKV2] Kiosk is starting...")
     f = Factory()
-    f.protocol = Echo
     site = server.Site(Simple())
     endpoint = endpoints.TCP4ServerEndpoint(reactor, 8080)
     endpoint.listen(site)
@@ -407,7 +261,7 @@ def main():
 
 def install(out):
     def selfout(s):
-        out("[Installer] " + s)
+        out("[MMRKv2 Installer] " + s)
     selfout("Installing directory at: " + dir)
     try:
         os.mkdir(dir)
@@ -417,7 +271,7 @@ def install(out):
     try:
         selfout("Creating JSONs: ")
         jsonHelper.createJSON(dir + "log.json")
-        jsonHelper.createJSON(dir + "UIDs.json")
+        jsonHelper.createJSON(dir + "permissions.json")
         jsonHelper.createJSON(dir + "secrets.json")
         selfout("Done.")
         selfout("Writing format to secrets.json with defaults:")
@@ -431,7 +285,7 @@ def install(out):
 
     except Exception as e:
         selfout("Failed to create JSONs. \n" + str(e))
-    selfout("Success! Please set a five digit admin PIN in secrets.json.")
+    selfout("Success! Please set a five digit admin PIN and downloadPath in secrets.json")
 
 def log(ID, machines):
     logdata = jsonHelper.getJson(dir + "log.json")
@@ -446,21 +300,19 @@ def getName(data,ID):
       
       return data[ID]['firstname'] + " " + data[ID]['lastname']
 def checkID(ID):
-    UIDs = jsonHelper.getJson(dir + "UIDs.json")
-    if ID in UIDs:
+    permissions = jsonHelper.getJson(dir + "permissions.json")
+    if ID in permissions:
       
-      return [UIDs[ID]['firstname'],UIDs[ID]['machines']]
+      return [permissions[ID]['firstname'],permissions[ID]['machines']]
     else:
       return ["Incorrect"]
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = False
+    debug = True
 
     if debug or "--debug" in sys.argv:
         import os
         dir = "./data/"
         kioskIP = "192.168.86.80"
-
-    
     main()

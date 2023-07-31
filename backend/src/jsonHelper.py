@@ -1,5 +1,4 @@
 import json
-
 def createJSON(path):
     with open(path, 'w') as f:
         print("Created JSON at " + path)

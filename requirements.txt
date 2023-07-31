@@ -8,3 +8,5 @@ art==5.9
 uploadserver
 twisted
 service_identity
+pyOpenSSL
+selenium

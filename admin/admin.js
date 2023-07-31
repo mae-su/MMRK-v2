@@ -55,8 +55,9 @@ document.addEventListener("keypress", function onPress(event) {
     }  
   } else if(logScreen){
     setTimeout(function () {
-    sendData('DumpJSON;' + getElement('searchBar').value);
-  },50)
+    sendData('LogData;Dump;' + getElement('searchBar').value);
+  },20) 
+
 }
 });
 
@@ -70,8 +71,23 @@ document.addEventListener('keydown', function(event) {
     
   }else if(logScreen && searchquery != getElement('searchBar').value && event.key ==='Backspace'){
     searchquery = getElement('searchBar').value;
-      sendData('DumpJSON;' + searchquery);
+      sendData('LogData;Dump;' + searchquery);
   }
+});
+
+
+document.addEventListener('DOMContentLoaded', function() { // https://chat.openai.com/share/c37f6cf7-434e-4351-927c-f22e9809f648
+  const fileInput = document.getElementById('fileInput')
+  fileInput.addEventListener('change', function(event) {
+    const selectedFile = event.target.files[0];
+    const fileReader = new FileReader();
+    fileReader.addEventListener('load', function() {
+        const fileContents = fileReader.result;
+        console.log(fileContents);
+        sendData('PermissionsManager;Inject;' + fileContents); //beam the json data over to the server
+        fileInput.value = '';//clears the file from the input element
+    });//fileReader.readAsText(selectedFile);
+  });
 });
 
 function borderStep(step){
@@ -195,14 +211,30 @@ function signedIn(){
 
 function userManager(){
   managerOpen = true
-  sendData("UIDManager;");
-  addBodyClass('managerOpen')
-  window.open(teleporturl.split(":8080")[0] + ":4196/upload/", '_blank');
+  sendData("PermissionsManager;Dump");
+  setTimeout(function () {
+    fetch(teleporturl.split(":8080")[0] + ":8080/admin/buffer.json")//thank you stackoverflow <3
+    .then(resp => resp.status === 200 ? resp.blob() : Promise.reject('something went wrong'))
+    .then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      // the filename you want
+      a.download = 'permissions' + String(Math.floor(Date.now() / 1000)) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      // or you know, something with better UX...
+      sendData("PermissionsManager;@Scrub");
+      sendData("PermissionsManager;Open," + "vscode://file/C:/Users/%USERPROFILE%/Downloads/" + a.download)
+    })
+  }, 1000);
 }
 
-function parsejson(){
+function parseLogJson(){
   logScreen = true;
-  fetch('data.json')
+  fetch('buffer.json')
   .then(response => response.json())
   .then(data => {
     // Get the 'entries' div element
@@ -316,8 +348,8 @@ function sendData(data) {
               ID = ""
               updateDots()
             }
-            if(resp.includes("DumpedJSON;")){
-              parsejson()
+            if(resp.includes("DumpedLogJSON;")){
+              parseLogJson()
             }
             if(resp.includes("entryDenied")){
               if(errorState){
@@ -341,7 +373,9 @@ function sendData(data) {
                 entryDenied = false;
                 displaytimer = 0;
               }
-              
+            }
+            if (resp.includes("VSCode;")){
+              window.location.href = resp.split(";")[1]
             }
             // if(resp.includes("ping")){
             //   if(entryDenied){

@@ -45,6 +45,10 @@
   text-shadow: 0 0 10px #FF0000;
 } */
 
+#userManager{
+  cursor: unset;
+}
+
 .home .topRightButton{
   
   transform:translateZ(0) translateY(0) translateX(0);
