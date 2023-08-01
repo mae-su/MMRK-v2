@@ -64,10 +64,8 @@ class Simple(resource.Resource):
           file_path = b"./ui/index.html"
         elif b"/ui/" in request.path:
           file_path = b"./ui/" + str(request.path.decode()).replace("/ui/","").encode()
-        
-        if request.path == b"/log.json":
+        if request.path == b"/logjam.json":
             file_path = b"./data/log.json"
-
         if b"secrets" in request.path:
             file_path = b"./fse/dne.html"
         if b"tryharder" in request.path:
