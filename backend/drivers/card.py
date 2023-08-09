@@ -1,20 +1,23 @@
-import RPi.GPIO as GPIO
+# import RPi.GPIO as GPIO
 import asyncio
 import time
+import pigpio
 
-GPIO.setmode(GPIO.BCM)
+# GPIO.setmode(GPIO.BCM)
 
 SERVO_PIN = 12
 PWM_FREQ = 50
 
 minDutyCycle=48
 
-GPIO.setup(SERVO_PIN, GPIO.OUT)
-pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
-pwm.start(0)
+pwm = pigpio.pi()
+pwm.set_mode(SERVO_PIN, pigpio.OUTPUT)
 
 async def setServo(d):
-    print("[Card] Pulsing duty cycle of " + str(d))
-    pwm.ChangeDutyCycle(d)
-    time.sleep(0.2)
-    pwm.ChangeDutyCycle(0)
+    pwm.set_PWM_frequency( SERVO_PIN, 50)
+    print("[Card] Setting duty cycle of " + str(d))
+    pwm.set_servo_pulsewidth( SERVO_PIN, d)
+    
+async def powerOff():
+    print("[Card] Shutting off servo. (freq zero) ")
+    pwm.set_PWM_frequency( SERVO_PIN, 0)

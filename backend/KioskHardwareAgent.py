@@ -6,8 +6,8 @@ from websocket_server import WebsocketServer
 gpio = True
 threadedserver=True
 try: 
-     from drivers import fan
-     from drivers import card
+     import drivers.fan as fan
+     import drivers.card as card
 except ModuleNotFoundError:
      print("[OS] Pi imports failed. Assuming a Windows platform, GPIO calls will be disabled.")
      gpio = False
@@ -21,9 +21,9 @@ if "--debug" in sys.argv:
     debug = True
 if "--threadedserver" in sys.argv:
     threadedserver = True
-servoParkPosition = 4
-servoEjectPosition = 7
-
+servoParkPosition = 500
+servoEjectPosition = 1075
+unlockSpeed = 0.25
 # Called for every client connecting (after handshake)
 def new_client(client, server):
 	print("[Websocket] New client connected and was given id %d" % client['id'])
@@ -58,6 +58,8 @@ if True:
         print("[CARD] Confirming position...")
         asyncio.create_task(card.setServo(servoParkPosition))
         await asyncio.sleep(1)
+        asyncio.create_task(card.powerOff())
+        
         print("[CARD] Ready.")
         
         while True:
@@ -65,11 +67,13 @@ if True:
             await unlockEvent.wait()
             print("[Card]-- Beginning unlock sequence --")
             asyncio.create_task(card.setServo(servoEjectPosition))
-            await asyncio.sleep(s/1000)
+            await asyncio.sleep(s)
             asyncio.create_task(card.setServo(servoParkPosition))
-            await asyncio.sleep(1)
-            print("[CARD] Confirming position...")
+            await asyncio.sleep(0.5)
+            print("[CARD] Confirming PWM accuracy...")
             asyncio.create_task(card.setServo(servoParkPosition))
+            await asyncio.sleep(0.5)
+            asyncio.create_task(card.powerOff())
             unlockEvent.clear()
     
     async def server():
@@ -93,7 +97,7 @@ async def main():
         elif not gpio:
             tasks = [asyncio.create_task(server())]
         else:
-             tasks = [asyncio.create_task(card.setServo(4)), asyncio.create_task(fan.monitor()), asyncio.create_task(server()),asyncio.create_task(unlock(1000))]
+             tasks = [asyncio.create_task(card.setServo(4)), asyncio.create_task(fan.monitor()), asyncio.create_task(server()),asyncio.create_task(unlock(unlockSpeed))]
         
         done, pending = await asyncio.wait(tasks)
     
