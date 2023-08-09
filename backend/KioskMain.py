@@ -94,12 +94,12 @@ class Simple(resource.Resource):
         
         if content.startswith("%"):
             resp = self.adminPostHandler(content.strip("%"))
-            if "Ping" not in content.strip("%") and "Ping" not in content.strip("%") and not str(resp)=="Latest":
+            if True:
                 print("[Admin] " + content.strip("%") + " --> " + str(resp))
             return str("%" + str(resp)).encode()
         elif content.startswith("+"):
             resp = self.UIPostHandler(content.strip("+"))
-            if "Ping" not in content.strip("+"):
+            if True:
                 print("[UI] " + content.strip("+") + " --> " + resp)
             return str("+" + str(resp)).encode()
         
@@ -247,7 +247,6 @@ class Simple(resource.Resource):
                 return "Latest;Permissions were received successfully,\nbut an error occured writing to storage."
             return "Latest;Permissions have been updated."    
 def main():
-    
     try:
         if not os.path.exists(dir):
             install(print)
@@ -321,7 +320,7 @@ def checkID(ID):
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = False
+    debug = True
 
     if debug or "--debug" in sys.argv:
         import os

@@ -1,197 +1,195 @@
-var ID = ""
-var signInUnlock = false
-var entryDenied = false
-var errorState = false
-var selected = []
-var teleporturl = ""
+var ID = "";
+var signInUnlock = false;
+var entryDenied = false;
+var errorState = false;
+var selected = [];
+var teleporturl = "";
 
-function idleLogout() { //https://stackoverflow.com/questions/667555/how-to-detect-idle-time-in-javascript
-    var t;
-    window.onload = resetTimer;
-    window.onmousemove = resetTimer;
-    window.onmousedown = resetTimer;    // catches touchscreen presses as well
-    window.ontouchstart = resetTimer;   // catches touchscreen swipes as well
-    window.ontouchmove = resetTimer;    // required by some devices
-    window.onclick = resetTimer;        // catches touchpad clicks as well
-    window.onkeydown = resetTimer;
-    window.addEventListener('scroll', resetTimer, true); // improved; see comments
+function idleTimeout() {
+  const timeoutDuration = 15000;
+  let timeout;
 
-    function yourFunction() {
-      resetScreen()
-    }
+  const resetTimer = () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(resetScreen, timeoutDuration);
+  };
 
-    function resetTimer() {
-        clearTimeout(t);
-        t = setTimeout(yourFunction, 15000);  // time is in milliseconds
-    }
+  window.onload = window.onmousemove = window.onmousedown = window.ontouchstart = window.ontouchmove = window.onclick = window.onkeydown = window.addEventListener('scroll', resetTimer, true);
+
+  function yourFunction() {
+    resetScreen();
+  }
+
+  resetTimer();
 }
-idleLogout();
+
+idleTimeout();
 
 if (window.location.href.includes(":5500")) {
-  teleporturl = window.location.href.split(":5500")[0] + ":8080/teleport"; //automatically reconstructs the server URL if the admin url is through a Five Server environment
+  teleporturl = window.location.href.split(":5500")[0] + ":8080/teleport";
 } else {
-
   teleporturl = window.location.href.split("/ui")[0] + "/teleport";
 }
-document.documentElement.style.setProperty("--bordercolor", "hsla(54, 0%, 60%,80%)");
+
+document.documentElement.style.setProperty("--bordercolor", "hsla(54, 0%, 60%, 80%)");
+
 setInterval(function () {
   sendData("Ping,");
 }, 1000);
 
 function borderStep(step) {
-  if (step == -1) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 100%, 0 100%, 100% 100%, 0% 100%)";
-  }
-  if (step == 0) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 100%, 0 0%, 0% 0%, 0% 100%)";
-  }
-  if (step == 1) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 0 0, 22% 100%, 0% 100%)";
-  }
-  if (step == 2) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 20% 0, 20% 100%, 0% 100%)";
-  }
-  if (step == 3) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 44% 0, 44% 100%, 0% 100%)";
-  }
-  if (step == 4) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 66% 0, 66% 100%, 0% 100%)";
-  }
-  if (step == 5) {
-    document.getElementById("buttonDecorator").style.clipPath = "polygon(0 0, 100% 0, 100% 100%, 0% 100%)";
-  }
+  const buttonDecorator = document.getElementById("buttonDecorator");
+  const steps = [
+    "0 100%, 22 0%, 0% 0%, 0% 100%",
+    "0 0, 0 0, 22% 100%, 0% 100%",
+    "0 0, 20% 0, 20% 100%, 0% 100%",
+    "0 0, 44% 0, 44% 100%, 0% 100%",
+    "0 0, 66% 0, 66% 100%, 0% 100%",
+    "0 0, 100% 0, 100% 100%, 0% 100%"
+  ];
+  console.log(step)
+  buttonDecorator.style.clipPath = `polygon(${steps[step]})`;
 }
 
 function updateDots(first = false) {
-  var s = "";
-  switch (ID.length) {
-    case 0:
-      s = "_ _ _ _ _";
-      break;
-    case 1:
-      borderStep(1);
-      s = "* _ _ _ _";
-      break;
-    case 2:
-      borderStep(2);
-      s = "* * _ _ _";
-      break;
-    case 3:
-      borderStep(3);
-      s = "* * * _ _";
-      break;
-    case 4:
-      borderStep(4);
-      s = "* * * * _";
-      break;
-    case 5:
-      borderStep(5);
-      s = "* * * * *";
-      break;
-  }
-  document.getElementById("subtext").innerText = s
+  const dotCount = Math.min(ID.length, 5);
+  borderStep(dotCount);
+  const dots = Array(5).fill("*").fill("_", dotCount);
+  document.getElementById("subtext").innerText = dots.join(" ");
 }
+
 function del() {
-  ID = ID.slice(0, ID.length - 1)
-  updateDots()
+  ID = ID.slice(0, ID.length - 1);
+  updateDots();
 }
 
-function key(k) {
-  if (ID.length < 6) {
-    ID = ID + k
-    updateDots()
-  }
-  if (ID.length == 5) {
-    sendData("SignInReq;" + ID)
-  }
-}
-
-
-
-function resetScreen() {
-  document.documentElement.style.setProperty("--bordercolor", "hsl(54, 0%, 65%)");
-  document.body.classList.remove('idscreen');
-  document.body.classList.remove('screen2');
-  document.body.classList.add('welcome');
-  document.getElementById("signInText").innerText = "sign in";
-  document.getElementById("text").innerText = "welcome back."
-  document.getElementById("subtext").innerText = "please sign in.";
-  signInUnlock = false;
-  ID = ""
-}
 function signInButton() {
   if (!entryDenied && !errorState) {
     if (signInUnlock) {
-      sendData("Unlock;" + ID + ";" + selected.toString());
-      selected = [];
-      resetScreen()
-
+      if (selected.length == 0) {
+        document.documentElement.style.setProperty("--bordercolor", "red");
+        setTimeout(function () {
+          document.documentElement.style.setProperty("--bordercolor", "darkgrey");
+        }, 250);
+      } else {
+        sendData("Unlock;" + ID + ";" + selected.toString());
+        selected = [];
+        resetScreen();
+      }
     } else {
       sendData("Ping");
       document.documentElement.style.setProperty("--bordercolor", "#f4e136");
-      document.body.classList.remove('welcome'); document.body.classList.add('idscreen');
-      updateDots(true)
+      document.body.classList.remove('welcome');
+      document.body.classList.add('idscreen');
+      updateDots(true);
     }
   }
 }
 
-function machineButton(i, d) {
-  if (document.getElementById(i).style.backgroundColor == "#00000060" || document.getElementById(i).style.backgroundColor == "" || document.getElementById(i).style.backgroundColor == "rgba(0, 0, 0, 0.376)") {
-    document.getElementById(i).style.backgroundColor = "#f4e136";
-    selected.push(d);
-    console.log(selected);
-  } else {
-    selected = selected.filter(function (machine) {
-      return machine !== d;
-    });
-
-    console.log(selected);
-    document.getElementById(i).style.backgroundColor = "#00000060"
+function key(k) {
+  if (ID.length < 6) {
+    ID += k;
+    updateDots();
+  }
+  if (ID.length === 5) {
+    sendData("SignInReq;" + ID);
   }
 }
 
+function machineButton(i, d) {
+  const buttonElement = document.getElementById(i);
+  const backgroundColor = buttonElement.style.backgroundColor;
+  const selectedColor = "#f4e136";
+  const deselectedColor = "#00000060";
+  
+  if (backgroundColor === selectedColor || backgroundColor === "" || backgroundColor === "rgba(0, 0, 0, 0.376)") {
+    buttonElement.style.backgroundColor = selectedColor;
+    selected.push(d);
+    document.documentElement.style.setProperty("--bordercolor", "#00FF00");
+    console.log(selected);
+  } else {
+    selected = selected.filter(machine => machine !== d);
+    console.log(selected);
+    
+    if (selected.length === 0) {
+      document.documentElement.style.setProperty("--bordercolor", "darkgrey");
+    }
+    
+    buttonElement.style.backgroundColor = deselectedColor;
+  }
+}
+
+function resetScreen() {
+  const bodyClassList = document.body.classList;
+  const signInTextElement = document.getElementById("signInText");
+  const textElement = document.getElementById("text");
+  const subtextElement = document.getElementById("subtext");
+
+  document.documentElement.style.setProperty("--bordercolor", "hsl(54, 0%, 65%)");
+  bodyClassList.remove('idscreen', 'screen2');
+  bodyClassList.add('welcome');
+
+  signInTextElement.innerText = "sign in";
+  textElement.innerText = "welcome back.";
+  subtextElement.innerText = "please sign in.";
+
+  signInUnlock = false;
+  ID = "";
+}
+
 function sendData(data) {
-  data = "+" + data //adds the necessary modifier to all commands before sending 
-  var xhr = new XMLHttpRequest();   //** XMLHttpRequests are from stackoverflow!
-  xhr.open('POST', teleporturl, true); // Set the appropriate headers if you need to send data other than plain text  xhr.setRequestHeader('Content-Type', 'application/json'); xhr.setRequestHeader('Authorization', 'Bearer myToken');
+  data = "+" + data;
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', teleporturl, true);
   xhr.onreadystatechange = function () {
     if (xhr.readyState === XMLHttpRequest.DONE) {
       if (xhr.status === 200) {
-        resp = String(xhr.responseText.trim()) //removes the request header. --end complete stackoverflow copypaste
-        if (String(resp).includes('+')) {
-          resp = resp.replace('+', '')
-          console.log('Server --> Self: ' + resp); //process received responses here
+        var resp = xhr.responseText.trim();
+        if (resp.includes('+')) {
+          resp = resp.replace('+', '');
+          console.log('Server --> Self: ' + resp);
           if (resp.includes("Authorize")) {
-            var set = resp.split(";")
-            var name = String(set[1])
-            var machines = set.slice(2)
+            var set = resp.split(";");
+            var name = set[1];
+            var machines = set.slice(2);
             document.getElementById("machineList").innerHTML = "";
             for (const element of machines) {
-              identifier = String(element).replace(" ", "")
-              document.getElementById("machineList").innerHTML = document.getElementById("machineList").innerHTML + '<span class="mListItem" id=\'' + identifier + 'Button\' onclick="machineButton(\'' + identifier + 'Button\',\'' + element + '\')">' + element + '</span> '
+              var identifier = element.replace(" ", "");
+              document.getElementById("machineList").innerHTML +=
+                '<span class="mListItem" id="' +
+                identifier +
+                'Button" onclick="machineButton(\'' +
+                identifier +
+                'Button\',\'' +
+                element +
+                '\')">' +
+                element +
+                '</span> ';
             }
-            document.getElementById("text").innerText = "welcome, " + name.toLowerCase() + "."
+            document.getElementById("text").innerText = "welcome, " + name.toLowerCase() + ".";
             document.getElementById("subtext").innerText = "please select your machines.";
             document.getElementById("signInText").innerText = "unlock";
-            document.body.classList.add('screen2'); document.body.classList.remove('idscreen');
+            document.body.classList.add('screen2');
+            document.body.classList.remove('idscreen');
+            document.documentElement.style.setProperty("--bordercolor", "darkgrey");
             signInUnlock = true;
           }
 
           if (resp == "Incorrect") {
             document.documentElement.style.setProperty("--bordercolor", "red");
             setTimeout(function () {
-              document.documentElement.style.setProperty("--bordercolor", "#f4e136")
+              document.documentElement.style.setProperty("--bordercolor", "#f4e136");
             }, 250);
-            ID = ""
-            updateDots()
+            ID = "";
+            updateDots();
           }
           if (resp.includes("Ipaddr;")) {
-            var old = document.getElementById("signInText").innerText
-            document.getElementById("signInText").innerText = "http://" + resp.split(";")[1] + ":8080/admin/"
+            var old = document.getElementById("signInText").innerText;
+            document.getElementById("signInText").innerText = "http://" + resp.split(";")[1] + ":8080/admin/";
             setTimeout(function () {
-              document.getElementById("signInText").style.fontStyle = ""
-              document.getElementById("signInText").style.fontWeight = 400
-              document.getElementById("signInText").innerText = old
+              document.getElementById("signInText").style.fontStyle = "";
+              document.getElementById("signInText").style.fontWeight = 400;
+              document.getElementById("signInText").innerText = old;
             }, 7000);
           }
 
@@ -220,14 +218,13 @@ function sendData(data) {
             }
           }
         }
-      }
-      else {
+      } else {
         if (!errorState) {
           errorState = true;
           resetScreen();
           document.documentElement.style.setProperty("--bordercolor", "darkred");
           document.getElementById("text").innerText = "internal error :(";
-          document.getElementById("subtext").innerText = "the backend is not running.\nplease restart."
+          document.getElementById("subtext").innerText = "the backend is not running.\nplease restart.";
         }
         console.error('Error:', xhr.status);
       }
@@ -235,3 +232,4 @@ function sendData(data) {
   };
   xhr.send(data);
 }
+

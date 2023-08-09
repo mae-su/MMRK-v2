@@ -22,11 +22,13 @@
     pointer-events:none;
     z-index: 1;
     /* left:80%; */
+    clip-path:polygon(0 100%, 100% 100%, 100% 0%, 0% 0%);
 }
 
 .welcome #buttonDecorator{
     transform:translateX(0%);
 }
+
 
 #buttonDecoratorTrail{
     position:absolute;
@@ -44,15 +46,37 @@
     transition:transform 0.35s, clip-path 0.2s;
     transform:translateX(0);
     pointer-events:none;
-
+    
 }
 
 .screen2 #buttonDecoratorTrail{
-    transform:translateX(78%)
+    transform:translateX(78%);
     /* left:80%; */
+    opacity:0;
 }
 
 .welcome #buttonDecoratorTrail{
     transform:translateX(0);
     border-color:var(--bordercolor);
 }
+
+.shake{
+    animation: shake 0.5s cubic-bezier(0.76, 0.59, 0.10, 0.75) both;
+}
+@keyframes shake {
+    10%, 90% {
+      transform: translateX(calc(-1px + 78%));
+    }
+    
+    20%, 80% {
+      transform: translateX(calc(2px + 78%));
+    }
+  
+    30%, 50%, 70% {
+      transform: translateX(calc(-4px + 78%));
+    }
+  
+    40%, 60% {
+      transform: translateX(calc(4px + 78%));
+    }
+  }
