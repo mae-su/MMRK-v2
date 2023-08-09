@@ -261,10 +261,15 @@ def main():
     print("[MMRKV2] Kiosk UI is running at: http://localhost:8080/ui/")
     print("[MMRKV2] Admin UI is running at: http://localhost:8080/admin/")
     try:
-        subprocess.Popen(["chromium-browser", "http://localhost:8080/ui/", "--kiosk"])
+        command = "chromium-browser http://localhost:8080/ui/ --kiosk"
+        subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print("[MMRKV2] Kiosk UI opened successfully.")
     except:
         print("[MMRKV2] An error occurred while opening the UI on the kiosk. Please open the UI manually.")
+    try:
+        subprocess.Popen(['python', '/home/pi/MMRK-V2/backend/KioskHardwareAgent.py'])
+    except:
+      print("[MMRKV2] An error occurred while launching the hardware agent on the kiosk. Please launch it manually.")
     reactor.run()
 
 
