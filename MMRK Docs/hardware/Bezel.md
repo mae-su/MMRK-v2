@@ -1,0 +1,4 @@
+![[Pasted image 20230829011715.png]]
+The bezel is the front cover of the kiosk. Keep in mind that the four screws also hold standoffs that the backplate sits on. So as tempting as it may be, **it's risky to remove these screws.** The standoffs being tightened on these four screws in addition to the screws being tightened to the frame means that these screws may get damaged or damage something when removed.
+
+If you need to remove these screws to remove or replace the faceplate, you'll need to find a way to first untighten the standoffs and the outer rear screws on the kiosk. This means half to full disassembly of the kiosk, so if you can, try to avoid this!
