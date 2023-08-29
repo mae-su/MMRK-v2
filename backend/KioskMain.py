@@ -11,7 +11,8 @@ from twisted.internet import endpoints, reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.protocols.basic import LineReceiver
 from twisted.web import resource, server, static
-
+logJSONData = {}
+permissionsJSONData = {}
 redwhite = "\033[25;33;49m"
 homecursor = "\033[H"
 clearscreen = "\033[J"
@@ -139,6 +140,8 @@ class Simple(resource.Resource):
             return "OK"  # Return a response to the client
     
     def adminPostHandler(self, content):
+        global logJSONData
+        global permissionsJSONData
         if "Ping" in content:
           if entry():
             return str("entryDenied;")
@@ -181,27 +184,39 @@ class Simple(resource.Resource):
             if not returnall:
                 query = content.split(";")[2].lower()
                 
+            else:
+                logJSONData = OrderedDict(reversed(list(jsonHelper.getJson(dir + "log.json").items())))
+                permissionsJSONData = jsonHelper.getJson(dir + "permissions.json")
+                print("[MMRKV2] Data reloaded.")
             startTime = datetime.now()
-
-            logdata = OrderedDict(reversed(list(jsonHelper.getJson(dir + "log.json").items())))
-            permissions = jsonHelper.getJson(dir + "permissions.json")
             
-            for key, value in logdata.items():                
+            
+
+            for key, value in logJSONData.items():
                 try:
-                    value["name"] = permissions[value["ID"]]['firstname'] + " " + permissions[value["ID"]]['lastname']
-                    
-                    if not returnall:
-                        if (query not in str(value["name"]).lower()) and (query not in str(value["machines"]).lower()) and (query not in str(value["ID"]).lower()):
-                            value["include"] = "false"
+                    permissions = permissionsJSONData.get(value["ID"])
+                    if permissions:
+                        name = permissions['firstname'] + " " + permissions['lastname']
+                        value["name"] = name
+                        
+                        if not returnall:
+                            if query.isNumeric(): 
+                                if query in str(value["machines"]):
+                                    value["include"] = "true"
+                            else:
+                                if query.lower() in name.lower():
+                                    value["include"] = "true"
+                                else: value["include"] = "false"
                         else:
                             value["include"] = "true"
                     else:
-                        value["include"] = "true"
+                        value["include"] = "false"
                 except:
                     value["include"] = "false"
+
             endTime = datetime.now()
             execTime = endTime - startTime
-            jsonHelper.setJson(dir + "../admin/buffer.json", logdata)
+            jsonHelper.setJson(dir + "../admin/buffer.json", logJSONData)
             print("[MMRKV2] Log data dumped to admin buffer in " + str(execTime.total_seconds()*1000) + " milliseconds.")
             return "DumpedLogJSON;"
         
@@ -325,7 +340,7 @@ def checkID(ID):
 
 if __name__ == "__main__":
     # Change this before debugging, unless you run the program with the --debug flag.
-    debug = True
+    debug = False
 
     if debug or "--debug" in sys.argv:
         import os
