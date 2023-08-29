@@ -2,3 +2,4 @@
 Lots of parts in here, and it's hard to describe with images. That's why I strongly recommend taking a look through the CAD file, which you can find [right here](https://a360.co/3PfPqEX).
 
 [[Bezel]]
+[[Kiosk Trim]]
