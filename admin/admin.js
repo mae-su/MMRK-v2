@@ -227,10 +227,10 @@ function userManager(){
       a.click();
       window.URL.revokeObjectURL(url);
       // or you know, something with better UX...
-      sendData("PermissionsManager;@Scrub");
       sendData("PermissionsManager;Open," + a.download)
     })
   }, 1000);
+  sendData("PermissionsManager;Scrub")
 }
 
 function parseLogJson(){
@@ -275,7 +275,6 @@ function parseLogJson(){
   console.log("Rendered " + String(i) + " entries.")
   rmBodyClass('home');
   addBodyClass('logScreen');
-  
 })
   .catch(error => console.error(error));
 }

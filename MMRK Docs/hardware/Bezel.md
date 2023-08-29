@@ -1,4 +1,10 @@
 ![[Pasted image 20230829011715.png]]
-The bezel is the front cover of the kiosk. Keep in mind that the four screws also hold standoffs that the backplate sits on. So as tempting as it may be, **it's risky to remove these screws.** The standoffs being tightened on these four screws in addition to the screws being tightened to the frame means that these screws may get damaged or damage something when removed.
+The bezel is the front cover of the kiosk.  
 
-If you need to remove these screws to remove or replace the faceplate, you'll need to find a way to first untighten the standoffs and the outer rear screws on the kiosk. This means half to full disassembly of the kiosk, so if you can, try to avoid this!
+
+
+If you need to remove these screws to remove or replace the faceplate, slightly loosen the the outer rear screws of the kiosk. Then, untighten the front screws holding the faceplate in place. 
+
+The bezel has a tight fit with the display. Be gentle when removing or replacing it, or you might damage the display.
+
+These four screws are also what four internal standoffs sit on to mount the display to the backplate. These standoffs are the kiosk's primary structural support, so removing these means the display is only secured by the standoffs used to mount the Raspberry Pi. Use caution when removing these screws, as the standoffs are secured to them.
