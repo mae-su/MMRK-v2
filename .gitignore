@@ -54,3 +54,7 @@ docs/_build/
 *.json
 *.pyc
 
+backend/src/__pycache__/jsonHelper.cpython-311.pyc
+backend/src/__pycache__/cardswipe.cpython-311.pyc
+backend/KioskMain.py.save
+*.pyc
