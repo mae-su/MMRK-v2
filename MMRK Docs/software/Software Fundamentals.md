@@ -1,6 +1,6 @@
 First of all, let's run through the basic functions of the kiosk software.
 
-User Interface (UI)
+[[User Interface (UI)]]
 - Students enter a 5-digit code of their own
 - If the 5-digit code matches a student in the system, continue to a machine selection screen
 - Once machines are selected, unlock the machine room. This is handed off to the **Hardware Agent.**

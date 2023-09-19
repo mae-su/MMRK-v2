@@ -2,7 +2,6 @@ import json
 import os
 import subprocess
 import sys
-import threading
 from collections import OrderedDict
 from datetime import datetime
 #from selenium import webdriver
@@ -51,6 +50,7 @@ def isinstalled(dir):
         return False
 
 class Simple(resource.Resource):
+    '''Simple webserver'''
     isLeaf = True
     def getChild(self, path, request):
         if path == b"":
@@ -58,6 +58,7 @@ class Simple(resource.Resource):
         return resource.Resource.getChild(self, path, request)
     
     def render_GET(self, request):
+        '''When a browser requests a file, the URL is passed in here.'''
         file_path = "none"
         if request.path == b"./" or request.path == b"/" or request.path == b"." or request.path == b"":
             file_path = b"./ui/index.html"
@@ -68,7 +69,7 @@ class Simple(resource.Resource):
         if request.path == b"/logjam.json":
             file_path = b"./data/log.json"
         if b"secrets" in request.path:
-            file_path = b"./fse/dne.html"
+            file_path = b"./fse/dne.html" 
         if b"tryharder" in request.path:
             file_path = b"./fse/rick.mp4"
         if b"yadonegoofed" in request.path:
