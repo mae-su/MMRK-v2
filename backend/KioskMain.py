@@ -6,23 +6,13 @@ from collections import OrderedDict
 from datetime import datetime
 #from selenium import webdriver
 from src import cardswipe, jsonHelper
+from src.consoleColors import * # useful console formatting variables here!
 from twisted.internet import endpoints, reactor
 from twisted.internet.protocol import Factory, Protocol
 from twisted.protocols.basic import LineReceiver
 from twisted.web import resource, server, static
 logJSONData = {}
 permissionsJSONData = {}
-redwhite = "\033[25;33;49m"
-homecursor = "\033[H"
-clearscreen = "\033[J"
-screenf = redwhite + homecursor + clearscreen
-bold = "\033[1m"
-unbold = "\033[22m"
-ul = "\033[4m"
-unul = "\033[24m"
-boldul = bold + ul
-unboldul = unbold + unul
-end = "\033[0m"
 latestSignIns = []
 
 dir = "./data/"  # This is where files will be stored on the pi.
@@ -62,27 +52,28 @@ class Simple(resource.Resource):
         file_path = "none"
         if request.path == b"./" or request.path == b"/" or request.path == b"." or request.path == b"":
             file_path = b"./ui/index.html"
-        if request.path == b"/ui/":
+        elif request.path == b"/ui/":
           file_path = b"./ui/index.html"
         elif b"/ui/" in request.path:
           file_path = b"./ui/" + str(request.path.decode()).replace("/ui/","").encode()
-        if request.path == b"/logjam.json":
+        elif request.path == b"/logjam.json":
             file_path = b"./data/log.json"
-        if b"secrets" in request.path:
+        
+        #this next part is literally just rickroll resources
+        elif b"secrets" in request.path:
             file_path = b"./fse/dne.html" 
-        if b"tryharder" in request.path:
+        elif b"tryharder" in request.path:
             file_path = b"./fse/rick.mp4"
-        if b"yadonegoofed" in request.path:
+        elif b"yadonegoofed" in request.path:
             file_path = b"./fse/styles.min.css"
         
-        if request.path == b"/admin/":
+        elif request.path == b"/admin/":
             file_path = b"./admin/index.html"
-
         elif b"/admin/" in request.path:
           file_path = b"./admin/" + str(request.path.decode()).replace("/admin/","").encode()
-        elif b"/favicon.ico" in request.path: #idk why it kept prompting for this, but nevertheless here ya go a lil handler for a misplaced favicon
+        elif b"favicon.ico" in request.path:
             file_path = b"./admin/favicon.ico"
-        if file_path == "none":
+        elif file_path == "none":
             file_path = b"./fse/dne.html"
         print("\x1b[3m\x1b[90m" + str(request.path).replace("b","") + " served as " + str(file_path).replace("b","") + end)
         return static.File(file_path).getContent()
